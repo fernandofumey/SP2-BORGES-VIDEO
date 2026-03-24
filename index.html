@@ -25,17 +25,27 @@
         const MAX_ALLOWED_TIME = 10594; 
         const VIDEO_ID = '1BK5i-1smac';
 
+        // Local Storage Helpers for saving progress across sessions
+        const getSavedProgress = () => parseFloat(localStorage.getItem('aztec_video_max_time')) || 0;
+        const getSavedCurrent = () => parseFloat(localStorage.getItem('aztec_video_curr_time')) || 0;
+        const getSavedViolations = () => parseInt(localStorage.getItem('aztec_video_violations')) || 0;
+
         const App = () => {
-            const [view, setView] = useState('instructions'); // 'instructions', 'video', 'penalty', 'finished'
+            const [view, setView] = useState('instructions'); // 'instructions', 'video', 'warning', 'penalty', 'finished'
             
             const [player, setPlayer] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
-            const [currentTime, setCurrentTime] = useState(0);
+            const [currentTime, setCurrentTime] = useState(getSavedCurrent);
             const [ccEnabled, setCcEnabled] = useState(false);
+            const [playbackRate, setPlaybackRate] = useState(1);
             
-            const [maxTimeWatched, setMaxTimeWatched] = useState(0);
-            const maxTimeWatchedRef = useRef(0);
+            const [maxTimeWatched, setMaxTimeWatched] = useState(getSavedProgress);
+            const maxTimeWatchedRef = useRef(getSavedProgress());
             const lastSeekTimeRef = useRef(0);
+            
+            // Tab violation tracking
+            const [violations, setViolations] = useState(getSavedViolations);
+            const playbackRateRef = useRef(1);
 
             const playerContainerRef = useRef(null);
             const intervalRef = useRef(null);
@@ -44,10 +54,16 @@
             useEffect(() => {
                 const handleVisibilityChange = () => {
                     if (document.hidden && view === 'video') {
-                        setView('penalty');
                         if (player && typeof player.pauseVideo === 'function') {
                             player.pauseVideo();
                         }
+                        
+                        setViolations(prev => {
+                            const newCount = prev + 1;
+                            localStorage.setItem('aztec_video_violations', newCount.toString()); // Save penalty
+                            return newCount;
+                        });
+                        setView('warning');
                     }
                 };
 
@@ -78,6 +94,7 @@
             }, [view]);
 
             const initializePlayer = () => {
+                const startTime = Math.floor(getSavedCurrent());
                 const newPlayer = new window.YT.Player(playerContainerRef.current, {
                     videoId: VIDEO_ID,
                     playerVars: {
@@ -87,19 +104,27 @@
                         modestbranding: 1, 
                         fs: 0,             
                         iv_load_policy: 3, 
-                        start: 0,          
+                        start: startTime,  // Tell YouTube API to start at saved time
                         cc_load_policy: 1  
                     },
                     events: {
                         onReady: (event) => {
                             setPlayer(event.target);
                             event.target.setOption('captions', 'track', {}); 
+                            
+                            // Ensure the player seeks to the saved time immediately upon buffering
+                            const savedTime = getSavedCurrent();
+                            if (savedTime > 0) {
+                                event.target.seekTo(savedTime, true);
+                                lastSeekTimeRef.current = Date.now();
+                            }
                         },
                         onStateChange: (event) => {
                             setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
                             if (event.data === window.YT.PlayerState.PLAYING) {
-                                if (event.target.getPlaybackRate() !== 1) {
-                                    event.target.setPlaybackRate(1);
+                                // Enforce selected speed
+                                if (event.target.getPlaybackRate() !== playbackRateRef.current) {
+                                    event.target.setPlaybackRate(playbackRateRef.current);
                                 }
                             }
                         }
@@ -113,7 +138,7 @@
                     intervalRef.current = setInterval(() => {
                         const time = player.getCurrentTime();
                         
-                        // Check if they hit the 1h 26m 47s limit
+                        // Check if they hit the 2h 56m 34s limit
                         if (time >= MAX_ALLOWED_TIME) {
                             player.pauseVideo();
                             setView('finished');
@@ -134,12 +159,19 @@
                             lastSeekTimeRef.current = Date.now();
                             return;
                         } else {
-                            const newMax = Math.max(currentMax, time);
-                            maxTimeWatchedRef.current = newMax;
-                            setMaxTimeWatched(newMax);
+                            // Only update if time is legitimately progressing (ignores initial 0s buffering glitches)
+                            if (time > 0 || currentMax === 0) {
+                                const newMax = Math.max(currentMax, time);
+                                maxTimeWatchedRef.current = newMax;
+                                setMaxTimeWatched(newMax);
+                                localStorage.setItem('aztec_video_max_time', newMax.toString()); // Save max progress
+                            }
                         }
 
-                        setCurrentTime(time);
+                        if (time > 0 || currentMax === 0) {
+                            setCurrentTime(time);
+                            localStorage.setItem('aztec_video_curr_time', time.toString()); // Save exact current time
+                        }
                     }, 250);
                 } else {
                     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -170,6 +202,14 @@
                 }
             };
 
+            const toggleSpeed = () => {
+                if (!player) return;
+                const newRate = playbackRate === 1 ? 1.25 : 1;
+                setPlaybackRate(newRate);
+                playbackRateRef.current = newRate;
+                player.setPlaybackRate(newRate);
+            };
+
             const handleRewind = () => {
                 if (!player) return;
                 const newTime = Math.max(0, player.getCurrentTime() - 10);
@@ -191,6 +231,27 @@
                 lastSeekTimeRef.current = Date.now(); 
                 player.seekTo(targetTime, true);
                 setCurrentTime(targetTime);
+            };
+
+            const returnToVideoFromWarning = () => {
+                if (player) {
+                    const penaltyTime = 20;
+                    const newTime = Math.max(0, player.getCurrentTime() - penaltyTime);
+                    
+                    // We must reduce the maxTimeWatched so they can't skip past the penalty
+                    const newMax = Math.max(0, maxTimeWatchedRef.current - penaltyTime);
+                    maxTimeWatchedRef.current = newMax;
+                    setMaxTimeWatched(newMax);
+
+                    // Save the penalized time to local storage
+                    localStorage.setItem('aztec_video_max_time', newMax.toString());
+                    localStorage.setItem('aztec_video_curr_time', newTime.toString());
+
+                    lastSeekTimeRef.current = Date.now(); 
+                    player.seekTo(newTime, true);
+                    setCurrentTime(newTime);
+                }
+                setView('video');
             };
 
             const formatTime = (seconds) => {
@@ -221,11 +282,11 @@
                             <p className="text-red-400 font-bold bg-red-900/20 p-4 rounded-xl border border-red-500/30">
                                 Do not take the paper home, you will turn it to the teacher at the end of every period. 
                             </p>
-                            <p className="text-blue-400 font-bold bg-blue-900/20 p-4 rounded-xl border border-blue-500/30">
-                                If you exit to another tab, I will get a notification and you will get a zero.
-                            </p>
                             <p className="text-xl text-slate-400 italic">
                                 One of this is going to be considered a test grade.
+                            </p>
+                            <p className="text-lg text-green-400 font-bold bg-green-900/20 p-4 rounded-xl border border-green-500/30">
+                                💾 Your progress is automatically saved. If you accidentally close this tab, you will resume exactly where you left off.
                             </p>
                         </div>
                         <div className="mt-12 flex justify-center">
@@ -240,20 +301,25 @@
                 );
             }
 
-            if (view === 'penalty') {
+            if (view === 'warning') {
                 return (
-                    <div className="max-w-4xl w-full bg-red-900 p-12 rounded-3xl shadow-2xl border-4 border-red-500 text-center animate-pulse">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-red-400 mb-6"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                    <div className="max-w-4xl w-full bg-amber-900 p-12 rounded-3xl shadow-2xl border-4 border-amber-500 text-center animate-pulse">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-amber-400 mb-6"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                         <h1 className="text-6xl font-black text-white mb-6 uppercase tracking-widest">Tab Changed!</h1>
-                        <p className="text-3xl text-red-200 font-bold mb-4">
+                        <p className="text-3xl text-amber-200 font-bold mb-4">
                             You navigated away from the video.
                         </p>
-                        <p className="text-2xl text-red-100">
-                            As per the instructions, you have received a <span className="font-black text-white underline">ZERO</span> for this assignment.
+                        <p className="text-2xl text-amber-100 mb-10">
+                            Please keep this tab active to continue watching.
                         </p>
-                        <p className="mt-12 text-xl font-medium text-red-300 italic">
-                            Please raise your hand and speak to the teacher.
-                        </p>
+                        <div>
+                            <button 
+                                onClick={returnToVideoFromWarning}
+                                className="bg-amber-600 hover:bg-amber-500 text-white px-12 py-5 rounded-xl font-black text-2xl shadow-[0_0_20px_rgba(217,119,6,0.4)] transition-all transform hover:scale-105 uppercase tracking-wide"
+                            >
+                                Go Back To Video
+                            </button>
+                        </div>
                     </div>
                 );
             }
@@ -338,7 +404,26 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>
                                 </button>
 
-                                <div className="text-base font-medium text-slate-300 font-mono ml-2">
+                                {/* Playback Speed Button */}
+                                <div className="ml-2 flex items-center gap-3 hidden md:flex">
+                                    <span className="text-2xl">😊</span>
+                                    <span className="text-sm font-bold text-amber-400 uppercase tracking-wide">ok, you can speed up to 1.25x</span>
+                                    
+                                    {/* Noticeable Red Arrow */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-red-500 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]">
+                                        <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                                    </svg>
+                                    
+                                    <button 
+                                        onClick={toggleSpeed}
+                                        className={`px-4 py-1.5 rounded-lg border-2 font-bold transition-all focus:outline-none ${playbackRate === 1.25 ? 'bg-amber-500/20 border-amber-400 text-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]' : 'border-slate-500 text-white hover:border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]'}`}
+                                        title="Toggle Speed"
+                                    >
+                                        {playbackRate}x
+                                    </button>
+                                </div>
+
+                                <div className="text-base font-medium text-slate-300 font-mono ml-auto">
                                     {formatTime(currentTime)} / {formatTime(MAX_ALLOWED_TIME)}
                                 </div>
                             </div>
