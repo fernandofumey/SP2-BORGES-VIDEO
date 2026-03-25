@@ -126,18 +126,32 @@
             { id: 97, timestamp: 9950, text: "What did Manco Inca stage in 1536 that almost drove the Spaniards from Peru?", options: ["A peaceful protest", "A massive naval battle", "The Great Rebellion, laying siege to Cuzco and Lima", "A mass migration"], correctIndex: 2 },
             { id: 98, timestamp: 10245, text: "What massive discovery in Potosi changed the world economy?", options: ["A diamond mine", "A vast oil field", "A hidden city of gold", "A mountain of silver"], correctIndex: 3 },
             { id: 99, timestamp: 10305, text: "How did Francisco Pizarro meet his end?", options: ["He died peacefully in his sleep", "He was executed by the King", "He drowned at sea", "He was stabbed to death in his home by a group of rogue conquistadors"], correctIndex: 3 },
-            { id: 100, timestamp: 10580, text: "As you finish the video, what must you do now?", options: ["Leave immediately", "Watch the next episode", "Write an essay online", "Answer questions on the provided paper and turn it in at the end of the period"], correctIndex: 3 }
+            { id: 100, timestamp: 10580, text: "As you finish the video, what must you do now?", options: ["Leave immediately", "Watch the next episode", "Close the tab without saving", "Ensure your results CSV file downloads and submit it to your teacher"], correctIndex: 3 }
         ];
 
-        // Local Storage Helpers for saving progress across sessions
-        const getSavedProgress = () => parseFloat(localStorage.getItem('aztec_video_max_time')) || 0;
-        const getSavedCurrent = () => parseFloat(localStorage.getItem('aztec_video_curr_time')) || 0;
-        const getSavedViolations = () => parseInt(localStorage.getItem('aztec_video_violations')) || 0;
+        // Salt for Local Storage obfuscation to prevent students from manually editing their progress
+        const SALT = "aztec_v1_";
+
+        // Safely decode obfuscated local storage data
+        const decodeData = (key, fallback) => {
+            try {
+                const saved = localStorage.getItem(key);
+                if (saved) return parseFloat(atob(saved).replace(SALT, '')) || fallback;
+            } catch(e) {}
+            return fallback;
+        };
+
+        const getSavedProgress = () => decodeData('aztec_video_max_time_hash', 0);
+        const getSavedCurrent = () => decodeData('aztec_video_curr_time_hash', 0);
+        const getSavedViolations = () => decodeData('aztec_video_violations_hash', 0);
         
-        // Load answered questions from local storage to prevent making them re-answer on refresh
+        // Load answered questions safely
         const getSavedAnswers = () => {
-            const saved = localStorage.getItem('aztec_video_answers');
-            return saved ? new Set(JSON.parse(saved)) : new Set();
+            try {
+                const saved = localStorage.getItem('aztec_video_answers_hash');
+                if (saved) return new Set(JSON.parse(atob(saved).replace(SALT, '')));
+            } catch(e) {}
+            return new Set();
         };
 
         // Default teacher PIN
@@ -199,8 +213,8 @@
                             maxTimeWatchedRef.current = newMax;
                             setMaxTimeWatched(newMax);
                             
-                            localStorage.setItem('aztec_video_max_time', newMax.toString());
-                            localStorage.setItem('aztec_video_curr_time', newTime.toString());
+                            localStorage.setItem('aztec_video_max_time_hash', btoa(SALT + newMax.toString()));
+                            localStorage.setItem('aztec_video_curr_time_hash', btoa(SALT + newTime.toString()));
                             
                             lastSeekTimeRef.current = Date.now();
                             player.seekTo(newTime, true);
@@ -209,7 +223,7 @@
                         
                         setViolations(prev => {
                             const newCount = prev + 1;
-                            localStorage.setItem('aztec_video_violations', newCount.toString()); // Save penalty
+                            localStorage.setItem('aztec_video_violations_hash', btoa(SALT + newCount.toString())); // Save encrypted penalty
                             return newCount;
                         });
                     }
@@ -253,7 +267,8 @@
                         fs: 0,             
                         iv_load_policy: 3, 
                         start: startTime,  
-                        cc_load_policy: 1  
+                        cc_load_policy: 1,
+                        playsinline: 1     // CRITICAL: Prevents Apple/iOS native fast-forward scrub bars from opening
                     },
                     events: {
                         onReady: (event) => {
@@ -278,7 +293,7 @@
                 });
             };
 
-            // Main Video Loop (Time tracking, Anti-fast-forward, Questions, End limit)
+            // Main Video Loop (Strict Anti-Cheat Enforcer)
             useEffect(() => {
                 if (isPlaying && player && view === 'video') {
                     intervalRef.current = setInterval(() => {
@@ -291,36 +306,39 @@
                             return;
                         }
 
-                        // Enforce playback speed continuously to completely block speed-controller browser extensions
+                        // Enforce playback speed continuously to block Chrome speed-controller extensions
                         if (!isTeacherModeRef.current && player.getPlaybackRate() !== playbackRateRef.current) {
                             player.setPlaybackRate(playbackRateRef.current);
                         }
 
-                        // Prevent anti-cheat loop fighting asynchronous YouTube seeks
+                        // Prevent anti-cheat loop fighting asynchronous YouTube backward seeks
                         if (Date.now() - lastSeekTimeRef.current < 1500) {
                             setCurrentTime(time);
                             return;
                         }
                         
                         let currentMax = maxTimeWatchedRef.current;
+                        const JUMP_TOLERANCE = 3; // Allow up to 3 seconds for natural 1.25x speed and buffering hiccups
 
-                        // Prevent fast forwarding natively (Bypassed if Teacher Mode is active)
-                        if (!isTeacherModeRef.current && time > currentMax + 2) { 
+                        // STRICT ANTI-FAST-FORWARD
+                        // If they skip ahead more than the natural progression rate, snap them backward instantly
+                        if (!isTeacherModeRef.current && time > currentMax + JUMP_TOLERANCE) { 
                             player.seekTo(currentMax, true);
                             lastSeekTimeRef.current = Date.now();
                             return;
                         } else {
-                            if (time > 0 || currentMax === 0) {
-                                const newMax = Math.max(currentMax, time);
+                            // Only save progress if the video advanced naturally (refuses to save extension-assisted skips)
+                            if (time > currentMax && (time - currentMax) <= JUMP_TOLERANCE) {
+                                const newMax = time;
                                 maxTimeWatchedRef.current = newMax;
                                 setMaxTimeWatched(newMax);
-                                localStorage.setItem('aztec_video_max_time', newMax.toString()); 
+                                localStorage.setItem('aztec_video_max_time_hash', btoa(SALT + newMax.toString())); 
                             }
                         }
 
                         if (time > 0 || currentMax === 0) {
                             setCurrentTime(time);
-                            localStorage.setItem('aztec_video_curr_time', time.toString()); 
+                            localStorage.setItem('aztec_video_curr_time_hash', btoa(SALT + time.toString())); 
                         }
 
                         // === Check for Questions ===
@@ -390,16 +408,16 @@
                 let targetTime = clickRatio * MAX_ALLOWED_TIME;
 
                 if (!isTeacherModeRef.current) {
-                    // Strict anti-fast-forward: ignore clicks entirely if they try to skip past what they've watched
+                    // Strict Timeline Block: Clamp click attempts exactly to max watched time
                     if (targetTime > maxTimeWatchedRef.current) {
-                        return; 
+                        targetTime = maxTimeWatchedRef.current; 
                     }
                 } else {
-                    // If teacher skips forward, officially update the max watched time so questions trigger properly
+                    // Teacher Mode: Update the official max watched time allowing questions to trigger correctly
                     if (targetTime > maxTimeWatchedRef.current) {
                         maxTimeWatchedRef.current = targetTime;
                         setMaxTimeWatched(targetTime);
-                        localStorage.setItem('aztec_video_max_time', targetTime.toString());
+                        localStorage.setItem('aztec_video_max_time_hash', btoa(SALT + targetTime.toString()));
                     }
                 }
                 
@@ -410,7 +428,7 @@
 
             // Quiz UI Handlers
             const handleOptionClick = (index) => {
-                if (showFeedback) return; // Prevent changing answer
+                if (showFeedback) return; 
                 setSelectedOption(index);
                 setShowFeedback(true);
             };
@@ -419,8 +437,8 @@
                 const newAnswers = new Set(answeredQuestions).add(activeQuestion.id);
                 setAnsweredQuestions(newAnswers);
                 
-                // Save answered questions to localStorage so they don't pop up again on refresh
-                localStorage.setItem('aztec_video_answers', JSON.stringify(Array.from(newAnswers)));
+                // Save encrypted answered questions to localStorage 
+                localStorage.setItem('aztec_video_answers_hash', btoa(SALT + JSON.stringify(Array.from(newAnswers))));
                 
                 setActiveQuestion(null);
                 setSelectedOption(null);
@@ -520,10 +538,10 @@
                                 The video will periodically pause to ask you questions. You must answer them to continue.
                             </p>
                             <p>
-                                Then start to answer the questions in the paper provided. You will have either 2 or 4 class periods to complete (depending on A or B day). 
+                                You will have either 2 or 4 class periods to complete this assignment (depending on A or B day). 
                             </p>
                             <p className="text-red-400 font-bold bg-red-900/20 p-4 rounded-xl border border-red-500/30">
-                                Do not take the paper home, you will turn it to the teacher at the end of every period. 
+                                At the end of the video, your final score will be generated and downloaded. You must submit this downloaded file to your teacher.
                             </p>
                             <p className="text-xl text-slate-400 italic">
                                 One of this is going to be considered a test grade.
@@ -597,7 +615,7 @@
                         </div>
 
                         <p className="mt-8 text-xl text-amber-400 font-bold">
-                            Please complete the questions on your provided paper. Do not forget to turn it in!
+                            Please ensure your results file has downloaded and submit it to your teacher!
                         </p>
                     </div>
                 );
@@ -626,9 +644,10 @@
 
                     <div className="w-full flex flex-col rounded-xl shadow-2xl overflow-hidden border border-slate-700 relative">
                         <div className="relative w-full aspect-video bg-black">
-                            <div className="absolute inset-0 pointer-events-none">
-                                <div ref={playerContainerRef} className="w-full h-full"></div>
-                            </div>
+                            <div ref={playerContainerRef} className="absolute inset-0 w-full h-full"></div>
+                            
+                            {/* INVISIBLE GLASS SHIELD: Absolutely blocks ALL mouse/touch clicks from reaching the native YouTube iframe beneath it */}
+                            <div className="absolute inset-0 z-10 bg-transparent"></div>
                         </div>
 
                         {/* Interactive Question Modal Overlay */}
@@ -731,7 +750,7 @@
                             <div className="flex items-center gap-5 mt-2">
                                 <button 
                                     onClick={togglePlayPause}
-                                    className="text-white hover:text-blue-400 transition-colors focus:outline-none"
+                                    className="text-white hover:text-blue-400 transition-colors focus:outline-none z-20"
                                     disabled={!!activeQuestion}
                                     title={isPlaying ? "Pause" : "Play"}
                                 >
@@ -744,7 +763,7 @@
                                 
                                 <button 
                                     onClick={handleRewind}
-                                    className="text-white hover:text-blue-400 transition-colors focus:outline-none flex items-center gap-1"
+                                    className="text-white hover:text-blue-400 transition-colors focus:outline-none flex items-center gap-1 z-20"
                                     disabled={!!activeQuestion}
                                     title="Rewind 10 Seconds"
                                 >
@@ -754,7 +773,7 @@
                                 
                                 <button 
                                     onClick={toggleCC}
-                                    className={`transition-colors focus:outline-none ${ccEnabled ? 'text-blue-400' : 'text-slate-400 hover:text-white'}`}
+                                    className={`transition-colors focus:outline-none z-20 ${ccEnabled ? 'text-blue-400' : 'text-slate-400 hover:text-white'}`}
                                     title={ccEnabled ? "Turn Off Captions" : "Turn On Captions"}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>
@@ -765,7 +784,7 @@
                                     {isTeacherMode && (
                                         <button 
                                             onClick={disableTeacherMode}
-                                            className="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-lg font-bold shadow-[0_0_10px_rgba(220,38,38,0.6)] transition-colors flex items-center gap-2 border border-red-400 animate-pulse whitespace-nowrap"
+                                            className="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-lg font-bold shadow-[0_0_10px_rgba(220,38,38,0.6)] transition-colors flex items-center gap-2 border border-red-400 animate-pulse whitespace-nowrap z-20"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                                             EXIT TEACHER MODE
@@ -786,7 +805,7 @@
                                     <button 
                                         onClick={toggleSpeed}
                                         disabled={!!activeQuestion}
-                                        className={`px-4 py-1.5 rounded-lg border-2 font-bold transition-all focus:outline-none disabled:opacity-50 ${playbackRate === 1.25 ? 'bg-amber-500/20 border-amber-400 text-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]' : 'border-slate-500 text-white hover:border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]'}`}
+                                        className={`z-20 px-4 py-1.5 rounded-lg border-2 font-bold transition-all focus:outline-none disabled:opacity-50 ${playbackRate === 1.25 ? 'bg-amber-500/20 border-amber-400 text-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]' : 'border-slate-500 text-white hover:border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]'}`}
                                         title="Toggle Speed"
                                     >
                                         {playbackRate}x
