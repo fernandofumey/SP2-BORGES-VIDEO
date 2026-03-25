@@ -25,13 +25,126 @@
         const MAX_ALLOWED_TIME = 10594; 
         const VIDEO_ID = '1BK5i-1smac';
 
+        // 100 Questions spaced roughly every 105 seconds across the 2h 56m duration
+        const QUIZ_QUESTIONS = [
+            { id: 1, timestamp: 105, text: "What year did Christopher Columbus first make landfall in the Americas?", options: ["1492", "1519", "1402", "1607"], correctIndex: 0 },
+            { id: 2, timestamp: 210, text: "Which European country sponsored Columbus's voyages?", options: ["Portugal", "England", "Spain", "France"], correctIndex: 2 },
+            { id: 3, timestamp: 315, text: "What were the Spanish explorers and soldiers called?", options: ["Legionnaires", "Conquistadors", "Privateers", "Templars"], correctIndex: 1 },
+            { id: 4, timestamp: 420, text: "What was the main economic goal for the early Spanish explorers?", options: ["Finding spices and gold", "Establishing farming communes", "Studying native wildlife", "Building universities"], correctIndex: 0 },
+            { id: 5, timestamp: 525, text: "Which disease brought by Europeans devastated the native populations of the Americas?", options: ["Malaria", "The Bubonic Plague", "Smallpox", "Cholera"], correctIndex: 2 },
+            { id: 6, timestamp: 630, text: "What was the name of the island where Columbus established his first major settlement?", options: ["Cuba", "Hispaniola", "Jamaica", "Puerto Rico"], correctIndex: 1 },
+            { id: 7, timestamp: 735, text: "What military advantage did the Spanish NOT have over the native populations?", options: ["Steel swords", "Gunpowder", "Horses", "Radar technology"], correctIndex: 3 },
+            { id: 8, timestamp: 840, text: "Who was the Spanish conquistador who led the expedition against the Aztec Empire?", options: ["Francisco Pizarro", "Hernando de Soto", "Hernán Cortés", "Juan Ponce de León"], correctIndex: 2 },
+            { id: 9, timestamp: 945, text: "In what year did Cortés first arrive on the coast of Mexico?", options: ["1492", "1519", "1532", "1588"], correctIndex: 1 },
+            { id: 10, timestamp: 1050, text: "What was the capital city of the Aztec Empire?", options: ["Cusco", "Tenochtitlan", "Chichen Itza", "Tikal"], correctIndex: 1 },
+            { id: 11, timestamp: 1155, text: "Where was Tenochtitlan built?", options: ["On an island in the middle of a lake", "On top of a massive mountain", "Deep inside a dense jungle", "Along the Pacific coastline"], correctIndex: 0 },
+            { id: 12, timestamp: 1260, text: "Who was the emperor of the Aztecs when Cortés arrived?", options: ["Atahualpa", "Moctezuma II", "Pachacuti", "Cuauhtémoc"], correctIndex: 1 },
+            { id: 13, timestamp: 1365, text: "What omen did the Aztecs reportedly see before the Spanish arrived?", options: ["A total eclipse of the sun", "A comet streaking across the sky", "A massive earthquake", "A plague of locusts"], correctIndex: 1 },
+            { id: 14, timestamp: 1470, text: "Who was the enslaved indigenous woman who became an invaluable translator for Cortés?", options: ["Sacagawea", "Pocahontas", "La Malinche (Marina)", "Isabella"], correctIndex: 2 },
+            { id: 15, timestamp: 1575, text: "Why did many local indigenous tribes ally with Cortés?", options: ["They thought he was a god", "They wanted his gold", "They resented Aztec rule and taxation", "They wanted to sail to Spain"], correctIndex: 2 },
+            { id: 16, timestamp: 1680, text: "Which native empire was known as the fiercest rival of the Aztecs and became a major Spanish ally?", options: ["The Tlaxcalans", "The Mayans", "The Olmecs", "The Incas"], correctIndex: 0 },
+            { id: 17, timestamp: 1785, text: "What dramatic action did Cortés take to prevent his men from retreating to Cuba?", options: ["He executed his captains", "He scuttled (destroyed) his own ships", "He burned their maps", "He locked up all the food"], correctIndex: 1 },
+            { id: 18, timestamp: 1890, text: "How did Moctezuma initially react to the arrival of the Spanish?", options: ["He sent an army to destroy them instantly", "He ignored them completely", "He sent them lavish gifts of gold", "He fled into the mountains"], correctIndex: 2 },
+            { id: 19, timestamp: 1995, text: "What did the Aztec gifts of gold accidentally do?", options: ["Poisoned the Spanish", "Made the Spanish want to leave", "Fueled the Spaniards' greed and desire to conquer them", "Caused a mutiny among the Spaniards"], correctIndex: 2 },
+            { id: 20, timestamp: 2100, text: "When Cortés entered Tenochtitlan, what audacious move did he make?", options: ["He burned the grand temple", "He took Emperor Moctezuma hostage in his own palace", "He demanded to marry the emperor's daughter", "He stole the Aztec calendar stone"], correctIndex: 1 },
+            { id: 21, timestamp: 2205, text: "Why did Cortés have to temporarily leave Tenochtitlan and return to the coast?", options: ["To load more treasure onto his ships", "To fight off a Spanish force sent from Cuba to arrest him", "To escape a sudden plague", "To build a new fort"], correctIndex: 1 },
+            { id: 22, timestamp: 2310, text: "What happened in Tenochtitlan while Cortés was away?", options: ["The Aztecs surrendered completely", "A massive earthquake destroyed the city", "His deputy Pedro de Alvarado massacred unarmed Aztec nobles during a religious festival", "The Spanish garrison starved to death"], correctIndex: 2 },
+            { id: 23, timestamp: 2415, text: "How did Moctezuma die according to most historical accounts?", options: ["He was poisoned by his chefs", "He was struck by rocks thrown by his own angry people", "He died of old age", "Cortés executed him publicly"], correctIndex: 1 },
+            { id: 24, timestamp: 2520, text: "What is 'La Noche Triste' (The Night of Sorrows)?", options: ["The night the Spanish celebrated their victory", "The night the Spanish suffered horrific casualties trying to flee Tenochtitlan", "A religious festival", "The night Moctezuma was born"], correctIndex: 1 },
+            { id: 25, timestamp: 2625, text: "What primary weapon did the Aztecs use in hand-to-hand combat?", options: ["Steel longswords", "Wooden clubs embedded with razor-sharp obsidian blades (Macuahuitl)", "Bronze spears", "Iron axes"], correctIndex: 1 },
+            { id: 26, timestamp: 2730, text: "How did Aztec warfare goals differ from Spanish warfare goals?", options: ["Aztecs fought to capture enemies alive for sacrifice, Spanish fought to kill on the battlefield", "Aztecs fought to kill, Spanish fought to capture", "Aztecs only fought defensively", "Aztecs refused to use ranged weapons"], correctIndex: 0 },
+            { id: 27, timestamp: 2835, text: "After retreating from Tenochtitlan, how did Cortés prepare to take the city back?", options: ["He ordered reinforcements from Spain", "He built small warships (brigantines) to control the lake", "He poisoned the lake water", "He dug a tunnel under the city"], correctIndex: 1 },
+            { id: 28, timestamp: 2940, text: "What invisible force swept through Tenochtitlan and crippled the Aztec defense?", options: ["A massive hurricane", "An outbreak of Smallpox", "A swarm of locusts", "A mysterious sleeping sickness"], correctIndex: 1 },
+            { id: 29, timestamp: 3045, text: "Who was the final emperor of the Aztec Empire?", options: ["Moctezuma II", "Cuitláhuac", "Cuauhtémoc", "Pachacuti"], correctIndex: 2 },
+            { id: 30, timestamp: 3150, text: "In what year did Tenochtitlan finally fall to the Spanish?", options: ["1492", "1521", "1532", "1600"], correctIndex: 1 },
+            { id: 31, timestamp: 3255, text: "What modern city is built directly on top of the ruins of Tenochtitlan?", options: ["Lima", "Bogotá", "Mexico City", "Buenos Aires"], correctIndex: 2 },
+            { id: 32, timestamp: 3360, text: "Which empire dominated the Andes mountains in South America?", options: ["The Maya", "The Aztecs", "The Incas", "The Toltecs"], correctIndex: 2 },
+            { id: 33, timestamp: 3465, text: "Who was the Spanish conquistador who led the expedition against the Inca Empire?", options: ["Hernán Cortés", "Francisco Pizarro", "Vasco Núñez de Balboa", "Ferdinand Magellan"], correctIndex: 1 },
+            { id: 34, timestamp: 3570, text: "In what year did Pizarro capture the Inca Emperor?", options: ["1492", "1519", "1532", "1588"], correctIndex: 2 },
+            { id: 35, timestamp: 3675, text: "What weakened the Inca Empire just before Pizarro's arrival?", options: ["A massive earthquake", "A devastating civil war and a smallpox outbreak", "A rebellion of their enslaved workers", "A severe drought"], correctIndex: 1 },
+            { id: 36, timestamp: 3780, text: "Who was the Emperor of the Incas when Pizarro arrived?", options: ["Atahualpa", "Huascar", "Moctezuma", "Cuauhtémoc"], correctIndex: 0 },
+            { id: 37, timestamp: 3885, text: "Where did Pizarro set up his famous ambush to capture the Inca Emperor?", options: ["Cusco", "Machu Picchu", "Cajamarca", "Lima"], correctIndex: 2 },
+            { id: 38, timestamp: 3990, text: "How many Spanish soldiers did Pizarro have during the ambush at Cajamarca?", options: ["Over 10,000", "About 5,000", "Fewer than 200", "Exactly 1,000"], correctIndex: 2 },
+            { id: 39, timestamp: 4095, text: "What object did the Spanish friar hand to Atahualpa just before the attack?", options: ["A golden cross", "A Spanish sword", "A Bible", "A treaty"], correctIndex: 2 },
+            { id: 40, timestamp: 4200, text: "What did Atahualpa do with the Bible?", options: ["He read it aloud", "He kissed it", "He threw it on the ground because it did not 'speak' to him", "He burned it"], correctIndex: 2 },
+            { id: 41, timestamp: 4305, text: "What ransom did Atahualpa offer for his freedom?", options: ["To give the Spanish all his ships", "To fill a large room once with gold and twice with silver", "To lead the Spanish to El Dorado", "To marry Pizarro's daughter"], correctIndex: 1 },
+            { id: 42, timestamp: 4410, text: "Did Pizarro let Atahualpa go after the ransom was paid?", options: ["Yes, he kept his word", "No, he put him on trial and executed him anyway", "Yes, but he exiled him to Spain", "No, Atahualpa escaped first"], correctIndex: 1 },
+            { id: 43, timestamp: 4515, text: "What was the capital city of the Inca Empire?", options: ["Lima", "Tenochtitlan", "Cusco", "Quito"], correctIndex: 2 },
+            { id: 44, timestamp: 4620, text: "What incredible architectural skill were the Incas known for?", options: ["Building massive pyramids", "Creating stone walls that fit together perfectly without mortar", "Building floating islands", "Constructing steel bridges"], correctIndex: 1 },
+            { id: 45, timestamp: 4725, text: "What animal was crucial to the Incas for carrying goods in the Andes?", options: ["The horse", "The camel", "The llama", "The elephant"], correctIndex: 2 },
+            { id: 46, timestamp: 4830, text: "What was the 'Columbian Exchange'?", options: ["A bank in Spain", "The massive exchange of plants, animals, cultures, and diseases between the Old and New Worlds", "A treaty between Columbus and the King of Spain", "The trade route to India"], correctIndex: 1 },
+            { id: 47, timestamp: 4935, text: "Which of these crops was completely UNKNOWN to Europe before the conquest?", options: ["Wheat", "Rice", "Potatoes", "Apples"], correctIndex: 2 },
+            { id: 48, timestamp: 5040, text: "Which of these animals was completely UNKNOWN to the Americas before the Spanish arrived?", options: ["Turkeys", "Llamas", "Alpacas", "Horses"], correctIndex: 3 },
+            { id: 49, timestamp: 5145, text: "What legendary city of gold did many later conquistadors search for in vain?", options: ["Atlantis", "El Dorado", "Agartha", "Shangri-La"], correctIndex: 1 },
+            { id: 50, timestamp: 5250, text: "What happened to Francisco Pizarro in the end?", options: ["He died of old age in Spain", "He was assassinated by rival Spaniards in Lima", "He drowned in the Amazon", "He became King of Peru"], correctIndex: 1 },
+            { id: 51, timestamp: 5355, text: "Which conquistador explored the southeastern United States and became the first European to cross the Mississippi River?", options: ["Hernando de Soto", "Juan Ponce de León", "Francisco Coronado", "Vasco da Gama"], correctIndex: 0 },
+            { id: 52, timestamp: 5460, text: "Which conquistador searched for the 'Seven Cities of Gold' in the American Southwest?", options: ["Francisco Coronado", "Hernán Cortés", "Christopher Columbus", "Ferdinand Magellan"], correctIndex: 0 },
+            { id: 53, timestamp: 5565, text: "What was the 'Encomienda' system?", options: ["A type of Spanish ship", "A labor system that effectively enslaved native people to work for Spanish landowners", "A democratic voting system", "A type of native religious practice"], correctIndex: 1 },
+            { id: 54, timestamp: 5670, text: "Who was Bartolomé de las Casas?", options: ["A brutal conquistador", "A Spanish friar who advocated for the rights of indigenous peoples", "The King of Spain", "An Aztec priest"], correctIndex: 1 },
+            { id: 55, timestamp: 5775, text: "What major consequence arose from the massive death toll of the native populations?", options: ["The Spanish abandoned the Americas", "The Spanish began importing enslaved Africans to replace the lost labor force", "The Spanish paid native workers extremely high wages", "The forests grew back completely"], correctIndex: 1 },
+            { id: 56, timestamp: 5880, text: "What was the primary metal mined by the Spanish in the Americas that funded their global empire?", options: ["Bronze", "Iron", "Silver", "Platinum"], correctIndex: 2 },
+            { id: 57, timestamp: 5985, text: "Where was the most famous and massive silver mine in the Spanish Empire located?", options: ["Potosí (in modern-day Bolivia)", "Tenochtitlan", "Havana", "St. Augustine"], correctIndex: 0 },
+            { id: 58, timestamp: 6090, text: "What happened to the Spanish economy because of the massive influx of silver?", options: ["It caused massive inflation and eventually weakened Spain's economy", "It made everyone in Spain a billionaire permanently", "It had absolutely no effect", "It caused a gold rush"], correctIndex: 0 },
+            { id: 59, timestamp: 6195, text: "What was the Spanish Armada?", options: ["A group of explorers", "A massive fleet of warships sent to invade England in 1588", "A type of Spanish currency", "The royal palace in Madrid"], correctIndex: 1 },
+            { id: 60, timestamp: 6300, text: "Who was the Spanish monarch during the height of the conquests of Mexico and Peru?", options: ["King Ferdinand", "King Philip II", "Emperor Charles V", "Queen Isabella"], correctIndex: 2 },
+            { id: 61, timestamp: 6405, text: "What indigenous writing system was largely destroyed by Spanish priests who considered it 'demonic'?", options: ["Inca Quipu", "Mayan Codices (books)", "Aztec hieroglyphs", "Toltec runes"], correctIndex: 1 },
+            { id: 62, timestamp: 6510, text: "How did the Incas keep records without a written alphabet?", options: ["Using a system of knotted strings called Quipu", "Painting on cave walls", "Carving into massive stone monoliths", "Using smoke signals"], correctIndex: 0 },
+            { id: 63, timestamp: 6615, text: "What was the primary goal of Spanish missionaries in the New World?", options: ["To find gold", "To convert the indigenous populations to Catholic Christianity", "To map the rivers", "To learn native languages"], correctIndex: 1 },
+            { id: 64, timestamp: 6720, text: "What famous 'lost city' of the Incas was never found by the Spanish?", options: ["Cusco", "Lima", "Machu Picchu", "Bogotá"], correctIndex: 2 },
+            { id: 65, timestamp: 6825, text: "Who 'discovered' the Pacific Ocean by crossing the Isthmus of Panama?", options: ["Vasco Núñez de Balboa", "Ferdinand Magellan", "Hernando de Soto", "Francisco Pizarro"], correctIndex: 0 },
+            { id: 66, timestamp: 6930, text: "Which expedition was the first to successfully circumnavigate (sail completely around) the globe?", options: ["Columbus's expedition", "Magellan's expedition", "Cortés's expedition", "Vespucci's expedition"], correctIndex: 1 },
+            { id: 67, timestamp: 7035, text: "Did Ferdinand Magellan survive his own voyage around the world?", options: ["Yes, he lived to be an old man", "No, he was killed in the Philippines before returning to Spain", "Yes, but he stayed in India", "No, his ship sank in the Atlantic"], correctIndex: 1 },
+            { id: 68, timestamp: 7140, text: "Which continent is named after the Italian explorer Amerigo Vespucci?", options: ["Africa", "Australia", "Antarctica", "America (North and South)"], correctIndex: 3 },
+            { id: 69, timestamp: 7245, text: "What was the main purpose of the 'Requerimiento' read by conquistadors?", options: ["To teach the natives Spanish", "To legally demand that native populations submit to Spain and Christianity or face war", "To list the trade goods they wanted", "To invite them to a feast"], correctIndex: 1 },
+            { id: 70, timestamp: 7350, text: "Why was the 'Requerimiento' highly controversial and flawed?", options: ["It was too long", "It was read in Spanish or Latin to people who didn't understand those languages", "It offered too much gold", "It gave away Spanish secrets"], correctIndex: 1 },
+            { id: 71, timestamp: 7455, text: "Which conquistador searched for the 'Fountain of Youth' in Florida?", options: ["Hernán Cortés", "Juan Ponce de León", "Francisco Pizarro", "Christopher Columbus"], correctIndex: 1 },
+            { id: 72, timestamp: 7560, text: "What was the first permanent European settlement in what is now the United States, founded by the Spanish?", options: ["Jamestown", "Plymouth", "St. Augustine", "New York"], correctIndex: 2 },
+            { id: 73, timestamp: 7665, text: "What does the term 'Mesoamerica' refer to?", options: ["South America only", "The region from central Mexico down through Central America", "The Caribbean islands", "The United States and Canada"], correctIndex: 1 },
+            { id: 74, timestamp: 7770, text: "What highly valuable resource did the Aztecs demand as tribute from conquered tribes?", options: ["Gold only", "Horses", "Cacao beans, feathers, cotton, and human captives", "Steel weapons"], correctIndex: 2 },
+            { id: 75, timestamp: 7875, text: "Why did the Aztecs perform human sacrifices?", options: ["To punish criminals", "To intimidate their enemies and 'feed' their gods, particularly the Sun God, to keep the universe alive", "As a form of population control", "To practice medical surgery"], correctIndex: 1 },
+            { id: 76, timestamp: 7980, text: "What was the 'Atlatl' used by Mesoamerican warriors?", options: ["A type of sword", "A heavily armored shield", "A spear-thrower that increased range and penetrating power", "A blowgun"], correctIndex: 2 },
+            { id: 77, timestamp: 8085, text: "What defensive armor did Spanish soldiers prefer to wear in the hot, humid jungles instead of heavy steel?", options: ["Leather jackets", "Thickly quilted cotton armor adopted from the natives", "Chainmail", "No armor at all"], correctIndex: 1 },
+            { id: 78, timestamp: 8190, text: "What terrifying weapon did the Spanish use that created loud noises, smoke, and shattered native morale?", options: ["Crossbows", "Cannons and early muskets (harquebuses)", "Catapults", "Greek Fire"], correctIndex: 1 },
+            { id: 79, timestamp: 8295, text: "What animals did the Spanish use in battle that the natives had never seen before?", options: ["War elephants", "Trained falcons", "War horses and massive war dogs (mastiffs)", "Lions"], correctIndex: 2 },
+            { id: 80, timestamp: 8400, text: "What happened to the indigenous religion of the Aztec Empire after the conquest?", options: ["It became the official religion of Spain", "It was strictly outlawed and replaced by Catholicism, though some beliefs blended together", "It remained unchanged", "It was exported to Europe"], correctIndex: 1 },
+            { id: 81, timestamp: 8505, text: "What is the blending of religious beliefs (like combining Catholic saints with indigenous gods) called?", options: ["Orthodoxy", "Syncretism", "Atheism", "Monotheism"], correctIndex: 1 },
+            { id: 82, timestamp: 8610, text: "How did the Spanish layout their new colonial cities in the Americas?", options: ["In chaotic circles", "In a strict grid pattern centered around a main plaza containing a church and government buildings", "Along a single straight road", "Hidden in dense forests"], correctIndex: 1 },
+            { id: 83, timestamp: 8715, text: "Who were the 'Peninsulares' in the Spanish colonial caste system?", options: ["People born in the Americas of mixed heritage", "Native Americans", "Spaniards born in Spain (the Iberian Peninsula) who held the highest offices", "Enslaved peoples"], correctIndex: 2 },
+            { id: 84, timestamp: 8820, text: "Who were the 'Criollos' (Creoles)?", options: ["Spaniards born in the Americas", "Native Americans", "People from England", "Spanish royalty"], correctIndex: 0 },
+            { id: 85, timestamp: 8925, text: "What massive river system in South America was first navigated by European explorer Francisco de Orellana?", options: ["The Mississippi River", "The Nile River", "The Amazon River", "The Colorado River"], correctIndex: 2 },
+            { id: 86, timestamp: 9030, text: "Why is it called the 'Amazon' River?", options: ["After the company", "Orellana claimed he was attacked by a tribe of fierce female warriors, reminding him of the Amazons from Greek mythology", "It is a native word for 'water'", "After the Spanish Queen"], correctIndex: 1 },
+            { id: 87, timestamp: 9135, text: "What major European rival began challenging Spain's dominance in the Americas by sending 'sea dogs' (privateers) to raid Spanish ships?", options: ["Italy", "Germany", "England", "Russia"], correctIndex: 2 },
+            { id: 88, timestamp: 9240, text: "Who was the most famous English privateer who raided Spanish treasure ships?", options: ["Blackbeard", "Captain Kidd", "Sir Francis Drake", "Henry Morgan"], correctIndex: 2 },
+            { id: 89, timestamp: 9345, text: "What is the name of the narrow land bridge connecting North and South America?", options: ["The Isthmus of Panama", "The Sinai Peninsula", "The Bering Strait", "The Strait of Gibraltar"], correctIndex: 0 },
+            { id: 90, timestamp: 9450, text: "How did the Spanish transport silver from Peru to Spain?", options: ["By train", "By ship to Panama, carried across the isthmus by mules, then loaded onto galleons for Spain", "They flew it", "They sailed entirely around Antarctica"], correctIndex: 1 },
+            { id: 91, timestamp: 9555, text: "What was the 'Manila Galleon' trade?", options: ["Trade between Spain and England", "A massive trade route connecting Spanish America (Acapulco) with Asia (Philippines) exchanging silver for silk and porcelain", "A slave trade route", "A spice trade route in the Mediterranean"], correctIndex: 1 },
+            { id: 92, timestamp: 9660, text: "By what year had the majority of the massive native empires (Aztec and Inca) completely fallen to Spanish control?", options: ["1492", "By the 1540s", "1776", "1812"], correctIndex: 1 },
+            { id: 93, timestamp: 9765, text: "What was the ultimate fate of the gold artifacts stolen from the Aztecs and Incas?", options: ["They are in museums today", "They were buried and lost", "Most were melted down into gold bars and coins to fund European wars", "They were returned to the natives"], correctIndex: 2 },
+            { id: 94, timestamp: 9870, text: "Which modern-day language is spoken by the majority of people from Mexico to Argentina as a direct result of the Conquistadors?", options: ["English", "Portuguese", "Spanish", "French"], correctIndex: 2 },
+            { id: 95, timestamp: 9975, text: "Which South American country speaks Portuguese instead of Spanish due to the Treaty of Tordesillas?", options: ["Argentina", "Chile", "Brazil", "Peru"], correctIndex: 2 },
+            { id: 96, timestamp: 10080, text: "What crop, native to the Americas, revolutionized European diets and populations?", options: ["Sugar", "Coffee", "The Potato", "Wheat"], correctIndex: 2 },
+            { id: 97, timestamp: 10185, text: "What addictive crop, native to the Americas, became a massive cash crop for European colonies?", options: ["Tea", "Tobacco", "Cotton", "Silk"], correctIndex: 1 },
+            { id: 98, timestamp: 10290, text: "What was a major reason why Native Americans could not unite to fight off the Spanish?", options: ["They lacked communication skills", "Deep historical rivalries and hatred between different native empires prevented a united front", "They had no weapons", "They all believed the Spanish were peaceful"], correctIndex: 1 },
+            { id: 99, timestamp: 10395, text: "Which of the following best summarizes the impact of the Conquistadors?", options: ["They peacefully traded knowledge and left", "They established a global empire, drastically altered world demographics through disease and colonization, and initiated the modern global economy", "They failed to find any wealth and quickly returned to Spain", "They only explored the coastlines and never went inland"], correctIndex: 1 },
+            { id: 100, timestamp: 10500, text: "As you reach the end of this assigned viewing, what is the most critical instruction you must follow?", options: ["Go home immediately", "Close the laptop without saving", "Start answering the questions on the provided paper and turn it in at the end of the period", "Watch the next 3 episodes"], correctIndex: 2 }
+        ];
+
         // Local Storage Helpers for saving progress across sessions
         const getSavedProgress = () => parseFloat(localStorage.getItem('aztec_video_max_time')) || 0;
         const getSavedCurrent = () => parseFloat(localStorage.getItem('aztec_video_curr_time')) || 0;
         const getSavedViolations = () => parseInt(localStorage.getItem('aztec_video_violations')) || 0;
+        
+        // Load answered questions from local storage to prevent making them re-answer on refresh
+        const getSavedAnswers = () => {
+            const saved = localStorage.getItem('aztec_video_answers');
+            return saved ? new Set(JSON.parse(saved)) : new Set();
+        };
+
+        // Default teacher PIN
+        const TEACHER_PIN = "1234";
 
         const App = () => {
-            const [view, setView] = useState('instructions'); // 'instructions', 'video', 'warning', 'penalty', 'finished'
+            const [view, setView] = useState('instructions'); 
             
             const [player, setPlayer] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
@@ -47,15 +160,51 @@
             const [violations, setViolations] = useState(getSavedViolations);
             const playbackRateRef = useRef(1);
 
+            // Question Tracking Logic
+            const [activeQuestion, setActiveQuestion] = useState(null);
+            const activeQuestionRef = useRef(null);
+            activeQuestionRef.current = activeQuestion;
+
+            const [answeredQuestions, setAnsweredQuestions] = useState(getSavedAnswers());
+            const answeredQuestionsRef = useRef(getSavedAnswers());
+            answeredQuestionsRef.current = answeredQuestions;
+
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [showFeedback, setShowFeedback] = useState(false);
+            
+            // Teacher Mode States
+            const [isTeacherMode, setIsTeacherMode] = useState(false);
+            const isTeacherModeRef = useRef(false);
+            const [showPinModal, setShowPinModal] = useState(false);
+            const [pinInput, setPinInput] = useState("");
+            const [pinError, setPinError] = useState(false);
+
             const playerContainerRef = useRef(null);
             const intervalRef = useRef(null);
 
             // Tab visibility detection (Anti-Cheat)
             useEffect(() => {
                 const handleVisibilityChange = () => {
-                    if (document.hidden && view === 'video') {
+                    // Disable tab penalty if in Teacher Mode
+                    if (document.hidden && view === 'video' && !isTeacherModeRef.current) {
                         if (player && typeof player.pauseVideo === 'function') {
                             player.pauseVideo();
+                            
+                            // Apply 20 second penalty silently
+                            const penaltyTime = 20;
+                            // Ensure penalty doesn't push them into negative time
+                            const newTime = Math.max(0, player.getCurrentTime() - penaltyTime);
+                            const newMax = Math.max(0, maxTimeWatchedRef.current - penaltyTime);
+                            
+                            maxTimeWatchedRef.current = newMax;
+                            setMaxTimeWatched(newMax);
+                            
+                            localStorage.setItem('aztec_video_max_time', newMax.toString());
+                            localStorage.setItem('aztec_video_curr_time', newTime.toString());
+                            
+                            lastSeekTimeRef.current = Date.now();
+                            player.seekTo(newTime, true);
+                            setCurrentTime(newTime);
                         }
                         
                         setViolations(prev => {
@@ -63,7 +212,6 @@
                             localStorage.setItem('aztec_video_violations', newCount.toString()); // Save penalty
                             return newCount;
                         });
-                        setView('warning');
                     }
                 };
 
@@ -104,7 +252,7 @@
                         modestbranding: 1, 
                         fs: 0,             
                         iv_load_policy: 3, 
-                        start: startTime,  // Tell YouTube API to start at saved time
+                        start: startTime,  
                         cc_load_policy: 1  
                     },
                     events: {
@@ -112,7 +260,6 @@
                             setPlayer(event.target);
                             event.target.setOption('captions', 'track', {}); 
                             
-                            // Ensure the player seeks to the saved time immediately upon buffering
                             const savedTime = getSavedCurrent();
                             if (savedTime > 0) {
                                 event.target.seekTo(savedTime, true);
@@ -122,7 +269,6 @@
                         onStateChange: (event) => {
                             setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
                             if (event.data === window.YT.PlayerState.PLAYING) {
-                                // Enforce selected speed
                                 if (event.target.getPlaybackRate() !== playbackRateRef.current) {
                                     event.target.setPlaybackRate(playbackRateRef.current);
                                 }
@@ -132,7 +278,7 @@
                 });
             };
 
-            // Main Video Loop (Time tracking, Anti-fast-forward, End limit)
+            // Main Video Loop (Time tracking, Anti-fast-forward, Questions, End limit)
             useEffect(() => {
                 if (isPlaying && player && view === 'video') {
                     intervalRef.current = setInterval(() => {
@@ -153,25 +299,39 @@
                         
                         let currentMax = maxTimeWatchedRef.current;
 
-                        // Prevent fast forwarding
-                        if (time > currentMax + 2) { 
+                        // Prevent fast forwarding (Bypassed if Teacher Mode is active)
+                        if (!isTeacherModeRef.current && time > currentMax + 2) { 
                             player.seekTo(currentMax, true);
                             lastSeekTimeRef.current = Date.now();
                             return;
                         } else {
-                            // Only update if time is legitimately progressing (ignores initial 0s buffering glitches)
                             if (time > 0 || currentMax === 0) {
                                 const newMax = Math.max(currentMax, time);
                                 maxTimeWatchedRef.current = newMax;
                                 setMaxTimeWatched(newMax);
-                                localStorage.setItem('aztec_video_max_time', newMax.toString()); // Save max progress
+                                localStorage.setItem('aztec_video_max_time', newMax.toString()); 
                             }
                         }
 
                         if (time > 0 || currentMax === 0) {
                             setCurrentTime(time);
-                            localStorage.setItem('aztec_video_curr_time', time.toString()); // Save exact current time
+                            localStorage.setItem('aztec_video_curr_time', time.toString()); 
                         }
+
+                        // === Check for Questions ===
+                        if (!activeQuestionRef.current) {
+                            const upcoming = QUIZ_QUESTIONS.find(q => 
+                                time >= q.timestamp && 
+                                time < q.timestamp + 1 && // 1 second trigger window
+                                !answeredQuestionsRef.current.has(q.id)
+                            );
+                            
+                            if (upcoming) {
+                                player.pauseVideo();
+                                setActiveQuestion(upcoming);
+                            }
+                        }
+
                     }, 250);
                 } else {
                     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -224,8 +384,13 @@
                 const clickRatio = (e.clientX - rect.left) / rect.width;
                 let targetTime = clickRatio * MAX_ALLOWED_TIME;
 
-                if (targetTime > maxTimeWatchedRef.current) {
+                if (!isTeacherModeRef.current && targetTime > maxTimeWatchedRef.current) {
                     targetTime = maxTimeWatchedRef.current; 
+                } else if (isTeacherModeRef.current && targetTime > maxTimeWatchedRef.current) {
+                    // If teacher skips forward, officially update the max watched time so questions trigger properly
+                    maxTimeWatchedRef.current = targetTime;
+                    setMaxTimeWatched(targetTime);
+                    localStorage.setItem('aztec_video_max_time', targetTime.toString());
                 }
                 
                 lastSeekTimeRef.current = Date.now(); 
@@ -233,25 +398,26 @@
                 setCurrentTime(targetTime);
             };
 
-            const returnToVideoFromWarning = () => {
-                if (player) {
-                    const penaltyTime = 20;
-                    const newTime = Math.max(0, player.getCurrentTime() - penaltyTime);
-                    
-                    // We must reduce the maxTimeWatched so they can't skip past the penalty
-                    const newMax = Math.max(0, maxTimeWatchedRef.current - penaltyTime);
-                    maxTimeWatchedRef.current = newMax;
-                    setMaxTimeWatched(newMax);
+            // Quiz UI Handlers
+            const handleOptionClick = (index) => {
+                if (showFeedback) return; // Prevent changing answer
+                setSelectedOption(index);
+                setShowFeedback(true);
+            };
 
-                    // Save the penalized time to local storage
-                    localStorage.setItem('aztec_video_max_time', newMax.toString());
-                    localStorage.setItem('aztec_video_curr_time', newTime.toString());
-
-                    lastSeekTimeRef.current = Date.now(); 
-                    player.seekTo(newTime, true);
-                    setCurrentTime(newTime);
-                }
-                setView('video');
+            const handleContinueVideo = () => {
+                const newAnswers = new Set(answeredQuestions).add(activeQuestion.id);
+                setAnsweredQuestions(newAnswers);
+                
+                // Save answered questions to localStorage so they don't pop up again on refresh
+                localStorage.setItem('aztec_video_answers', JSON.stringify(Array.from(newAnswers)));
+                
+                setActiveQuestion(null);
+                setSelectedOption(null);
+                setShowFeedback(false);
+                
+                lastSeekTimeRef.current = Date.now(); 
+                player.playVideo();
             };
 
             const formatTime = (seconds) => {
@@ -261,20 +427,72 @@
                 return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
             };
 
-            // Styles extracted for GitHub Pages compatibility
             const maxWatchedStyle = { width: `${(maxTimeWatched / MAX_ALLOWED_TIME) * 100 || 0}%` };
             const currentTimeStyle = { width: `${(currentTime / MAX_ALLOWED_TIME) * 100 || 0}%` };
 
-            // Render Views
+            const downloadCSV = () => {
+                const rows = [
+                    ["Metric", "Value"],
+                    ["Max Time Watched (seconds)", Math.floor(maxTimeWatchedRef.current)],
+                    ["Total Tab Violations", violations],
+                    ["Questions Completed", `${answeredQuestionsRef.current.size} / ${QUIZ_QUESTIONS.length}`],
+                    ["Completion Date", new Date().toLocaleString()]
+                ];
+                
+                const csvContent = rows.map(r => r.join(",")).join("\n");
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", "student_video_results.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            // Automatically download CSV when finished
+            useEffect(() => {
+                if (view === 'finished') {
+                    downloadCSV();
+                }
+            }, [view]);
+
+            const handlePinSubmit = (e) => {
+                e.preventDefault();
+                if (pinInput === TEACHER_PIN) {
+                    setIsTeacherMode(true);
+                    isTeacherModeRef.current = true;
+                    setShowPinModal(false);
+                    setPinInput("");
+                    setPinError(false);
+                } else {
+                    setPinError(true);
+                    setPinInput("");
+                }
+            };
+
             if (view === 'instructions') {
                 return (
-                    <div className="max-w-4xl w-full bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700">
+                    <div className="max-w-4xl w-full bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700 relative">
+                        {/* Discreet Teacher Login Button */}
+                        <button 
+                            onClick={() => setShowPinModal(true)}
+                            className="absolute top-4 right-4 text-slate-700 hover:text-slate-400 transition-colors"
+                            title="Teacher Access"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </button>
+
                         <h1 className="text-4xl font-black text-white mb-8 border-b border-slate-700 pb-6 uppercase tracking-wider text-center">
                             Instructions
                         </h1>
                         <div className="space-y-6 text-2xl leading-relaxed text-slate-200 font-medium">
                             <p>
                                 Watch only the first <strong className="text-amber-400">2 hours, 56 min 34 seconds</strong> (that is the first 4 episodes of the show).
+                            </p>
+                            <p>
+                                The video will periodically pause to ask you questions. You must answer them to continue.
                             </p>
                             <p>
                                 Then start to answer the questions in the paper provided. You will have either 2 or 4 class periods to complete (depending on A or B day). 
@@ -297,29 +515,35 @@
                                 Go to the Video
                             </button>
                         </div>
-                    </div>
-                );
-            }
 
-            if (view === 'warning') {
-                return (
-                    <div className="max-w-4xl w-full bg-amber-900 p-12 rounded-3xl shadow-2xl border-4 border-amber-500 text-center animate-pulse">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-amber-400 mb-6"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        <h1 className="text-6xl font-black text-white mb-6 uppercase tracking-widest">Tab Changed!</h1>
-                        <p className="text-3xl text-amber-200 font-bold mb-4">
-                            You navigated away from the video.
-                        </p>
-                        <p className="text-2xl text-amber-100 mb-10">
-                            Please keep this tab active to continue watching.
-                        </p>
-                        <div>
-                            <button 
-                                onClick={returnToVideoFromWarning}
-                                className="bg-amber-600 hover:bg-amber-500 text-white px-12 py-5 rounded-xl font-black text-2xl shadow-[0_0_20px_rgba(217,119,6,0.4)] transition-all transform hover:scale-105 uppercase tracking-wide"
-                            >
-                                Go Back To Video
-                            </button>
-                        </div>
+                        {/* PIN Entry Modal */}
+                        {showPinModal && (
+                            <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
+                                <div className="bg-slate-800 p-8 rounded-xl border border-slate-600 shadow-2xl w-96 max-w-full relative">
+                                    <button 
+                                        onClick={() => { setShowPinModal(false); setPinError(false); }}
+                                        className="absolute top-3 right-3 text-slate-400 hover:text-white"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                    </button>
+                                    <h2 className="text-2xl font-bold text-white mb-4 text-center">Teacher Override</h2>
+                                    <form onSubmit={handlePinSubmit} className="flex flex-col gap-4">
+                                        <input 
+                                            type="password" 
+                                            value={pinInput}
+                                            onChange={(e) => setPinInput(e.target.value)}
+                                            placeholder="Enter PIN" 
+                                            className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border focus:outline-none text-center text-xl tracking-widest font-mono"
+                                            autoFocus
+                                        />
+                                        {pinError && <p className="text-red-400 text-sm text-center font-bold">Incorrect PIN.</p>}
+                                        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors">
+                                            Unlock Timeline
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             }
@@ -329,9 +553,24 @@
                     <div className="max-w-3xl w-full bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700 text-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-green-400 mb-6"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                         <h1 className="text-4xl font-black text-white mb-4">Video Completed</h1>
-                        <p className="text-2xl text-slate-300">
+                        <p className="text-2xl text-slate-300 mb-4">
                             You have reached the 2 hour, 56 minute, and 34-second mark.
                         </p>
+                        <p className="text-xl text-slate-400 mb-8 font-mono">
+                            Final Interactive Score: {answeredQuestions.size} / 100
+                        </p>
+                        
+                        <div className="bg-slate-700/50 rounded-xl p-6 mb-8 border border-slate-600">
+                            <h3 className="text-xl font-bold text-blue-400 mb-2">📥 Results Downloaded Automatically</h3>
+                            <p className="text-slate-300 mb-4">Your results CSV file has been downloaded. If your browser blocked it, please click the button below to download it manually.</p>
+                            <button 
+                                onClick={downloadCSV}
+                                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold transition-colors shadow-lg"
+                            >
+                                Download Results Again
+                            </button>
+                        </div>
+
                         <p className="mt-8 text-xl text-amber-400 font-bold">
                             Please complete the questions on your provided paper. Do not forget to turn it in!
                         </p>
@@ -343,15 +582,83 @@
                 <div className="w-full flex flex-col items-center gap-6 animate-fadeIn">
                     <div className="text-center space-y-2">
                         <h1 className="text-3xl font-bold text-white">Class Video Assignment</h1>
-                        <p className="text-red-400 font-bold animate-pulse">Do NOT open other tabs or windows.</p>
+                        {isTeacherMode ? (
+                            <p className="text-green-400 font-bold bg-green-900/30 px-4 py-1 rounded-full inline-block border border-green-500/50">
+                                🔓 TEACHER MODE ACTIVE: Free Seeking Enabled (Tab Anti-Cheat Disabled)
+                            </p>
+                        ) : (
+                            <p className="text-red-400 font-bold animate-pulse">Do NOT open other tabs or windows.</p>
+                        )}
                     </div>
 
-                    <div className="w-full flex flex-col rounded-xl shadow-2xl overflow-hidden border border-slate-700">
+                    <div className="w-full flex flex-col rounded-xl shadow-2xl overflow-hidden border border-slate-700 relative">
                         <div className="relative w-full aspect-video bg-black">
                             <div className="absolute inset-0 pointer-events-none">
                                 <div ref={playerContainerRef} className="w-full h-full"></div>
                             </div>
                         </div>
+
+                        {/* Interactive Question Modal Overlay */}
+                        {activeQuestion && (
+                            <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8 overflow-y-auto">
+                                <div className="max-w-3xl w-full bg-slate-800 rounded-2xl p-8 shadow-2xl border border-slate-600 my-auto">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-2xl font-bold text-white leading-relaxed">
+                                            {activeQuestion.text}
+                                        </h2>
+                                        <span className="bg-blue-600 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap ml-4">
+                                            Question {activeQuestion.id} of 100
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                        {activeQuestion.options.map((option, idx) => {
+                                            let btnStyles = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 font-medium ";
+                                            
+                                            if (!showFeedback) {
+                                                btnStyles += "border-slate-600 hover:border-blue-400 hover:bg-slate-700 bg-slate-700/50 text-slate-200";
+                                            } else {
+                                                if (idx === activeQuestion.correctIndex) {
+                                                    btnStyles += "border-green-500 bg-green-500/20 text-green-100"; 
+                                                } else if (idx === selectedOption) {
+                                                    btnStyles += "border-red-500 bg-red-500/20 text-red-100"; 
+                                                } else {
+                                                    btnStyles += "border-slate-700 bg-slate-800 text-slate-500 opacity-50"; 
+                                                }
+                                            }
+
+                                            return (
+                                                <button 
+                                                    key={idx} 
+                                                    onClick={() => handleOptionClick(idx)}
+                                                    className={btnStyles}
+                                                    disabled={showFeedback}
+                                                >
+                                                    <span className="inline-block w-8 font-bold opacity-70">
+                                                        {String.fromCharCode(65 + idx)}.
+                                                    </span>
+                                                    {option}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {showFeedback && (
+                                        <div className="mt-8 flex justify-between items-center animate-fadeIn">
+                                            <div className={`text-xl font-bold ${selectedOption === activeQuestion.correctIndex ? 'text-green-400' : 'text-red-400'}`}>
+                                                {selectedOption === activeQuestion.correctIndex ? '✓ Correct!' : '✗ Incorrect.'}
+                                            </div>
+                                            <button 
+                                                onClick={handleContinueVideo}
+                                                className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-lg font-bold shadow-lg transition-colors text-lg"
+                                            >
+                                                Continue Video
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Custom Control Bar */}
                         <div className="w-full bg-slate-800 p-5 flex flex-col gap-3 z-40">
@@ -371,6 +678,20 @@
                                     className="absolute top-0 left-0 h-full bg-blue-500 rounded-full transition-all duration-200"
                                     style={currentTimeStyle}
                                 ></div>
+
+                                {/* Question Markers on Timeline */}
+                                {MAX_ALLOWED_TIME > 0 && QUIZ_QUESTIONS.map(q => {
+                                    // Make the markers tiny since there are 100 of them
+                                    const markerStyle = { left: `calc(${(q.timestamp / MAX_ALLOWED_TIME) * 100}% - 2px)` };
+                                    return (
+                                        <div 
+                                            key={q.id}
+                                            className={`absolute top-1/2 -translate-y-1/2 w-1 h-2 rounded-full ${answeredQuestions.has(q.id) ? 'bg-green-400 opacity-60' : 'bg-amber-400'}`}
+                                            style={markerStyle}
+                                            title={`Question ${q.id}`}
+                                        ></div>
+                                    );
+                                })}
                             </div>
 
                             {/* Controls row */}
@@ -378,6 +699,7 @@
                                 <button 
                                     onClick={togglePlayPause}
                                     className="text-white hover:text-blue-400 transition-colors focus:outline-none"
+                                    disabled={!!activeQuestion}
                                     title={isPlaying ? "Pause" : "Play"}
                                 >
                                     {isPlaying ? (
@@ -390,6 +712,7 @@
                                 <button 
                                     onClick={handleRewind}
                                     className="text-white hover:text-blue-400 transition-colors focus:outline-none flex items-center gap-1"
+                                    disabled={!!activeQuestion}
                                     title="Rewind 10 Seconds"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -409,21 +732,25 @@
                                     <span className="text-2xl">😊</span>
                                     <span className="text-sm font-bold text-amber-400 uppercase tracking-wide">ok, you can speed up to 1.25x</span>
                                     
-                                    {/* Noticeable Red Arrow */}
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-red-500 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]">
                                         <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
                                     </svg>
                                     
                                     <button 
                                         onClick={toggleSpeed}
-                                        className={`px-4 py-1.5 rounded-lg border-2 font-bold transition-all focus:outline-none ${playbackRate === 1.25 ? 'bg-amber-500/20 border-amber-400 text-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]' : 'border-slate-500 text-white hover:border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]'}`}
+                                        disabled={!!activeQuestion}
+                                        className={`px-4 py-1.5 rounded-lg border-2 font-bold transition-all focus:outline-none disabled:opacity-50 ${playbackRate === 1.25 ? 'bg-amber-500/20 border-amber-400 text-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]' : 'border-slate-500 text-white hover:border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]'}`}
                                         title="Toggle Speed"
                                     >
                                         {playbackRate}x
                                     </button>
                                 </div>
 
-                                <div className="text-base font-medium text-slate-300 font-mono ml-auto">
+                                <div className="text-base font-medium text-slate-300 font-mono ml-auto flex items-center gap-4">
+                                    <div className="flex gap-3 text-xs">
+                                        <span className="flex items-center gap-1 text-amber-400"><span className="w-2 h-2 rounded-full bg-amber-400"></span>{100 - answeredQuestions.size}</span>
+                                        <span className="flex items-center gap-1 text-green-400"><span className="w-2 h-2 rounded-full bg-green-400"></span>{answeredQuestions.size}</span>
+                                    </div>
                                     {formatTime(currentTime)} / {formatTime(MAX_ALLOWED_TIME)}
                                 </div>
                             </div>
