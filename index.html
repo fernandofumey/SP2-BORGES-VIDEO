@@ -15,7 +15,7 @@
     <!-- Babel for JSX compilation in the browser -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4 selection:bg-blue-500/30 overflow-hidden">
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4 py-10 selection:bg-blue-500/30">
     <div id="root" class="w-full max-w-5xl"></div>
 
     <script type="text/babel">
@@ -52,10 +52,18 @@
         // Salt for Local Storage obfuscation
         const SALT = "borges_v2_";
 
+        // Safe Unicode-compatible Base64 encoding (prevents crashes if students type accented names like "José")
+        const encodeBase64 = (str) => {
+            try { return btoa(unescape(encodeURIComponent(str))); } catch(e) { return btoa(str); }
+        };
+        const decodeBase64 = (str) => {
+            try { return decodeURIComponent(escape(atob(str))); } catch(e) { return atob(str); }
+        };
+
         const getSavedNum = (key) => {
             try {
                 const saved = localStorage.getItem(key);
-                if (saved) return parseFloat(atob(saved).replace(SALT, '')) || 0;
+                if (saved) return parseFloat(decodeBase64(saved).replace(SALT, '')) || 0;
             } catch(e) {}
             return 0;
         };
@@ -63,7 +71,7 @@
         const getSavedStr = (key) => {
             try {
                 const saved = localStorage.getItem(key);
-                if (saved) return atob(saved).replace(SALT, '');
+                if (saved) return decodeBase64(saved).replace(SALT, '');
             } catch(e) {}
             return "";
         };
@@ -71,7 +79,7 @@
         const getSavedAnswers = () => {
             try {
                 const saved = localStorage.getItem('borges_video_answers_hash');
-                if (saved) return JSON.parse(atob(saved).replace(SALT, ''));
+                if (saved) return JSON.parse(decodeBase64(saved).replace(SALT, ''));
             } catch(e) {}
             return {};
         };
@@ -91,16 +99,16 @@
             const [maxTimeWatched, setMaxTimeWatched] = useState(() => getSavedNum('borges_video_max_time_hash'));
             const maxTimeWatchedRef = useRef(getSavedNum('borges_video_max_time_hash'));
             
-            // Student Information States
+            // Student Information States (Renamed to prevent ReferenceError conflicts with global browser objects)
             const [firstName, setFirstName] = useState(() => getSavedStr('borges_video_first_name'));
             const [lastName, setLastName] = useState(() => getSavedStr('borges_video_last_name'));
-            const [period, setPeriod] = useState(() => getSavedStr('borges_video_period'));
-            const [email, setEmail] = useState(() => getSavedStr('borges_video_email'));
+            const [studentPeriod, setStudentPeriod] = useState(() => getSavedStr('borges_video_period'));
+            const [studentEmail, setStudentEmail] = useState(() => getSavedStr('borges_video_email'));
 
             const firstNameRef = useRef(firstName);
             const lastNameRef = useRef(lastName);
-            const periodRef = useRef(period);
-            const emailRef = useRef(email);
+            const studentPeriodRef = useRef(studentPeriod);
+            const studentEmailRef = useRef(studentEmail);
 
             // Tab violation tracking
             const [violations, setViolations] = useState(() => getSavedNum('borges_video_violations_hash'));
@@ -112,6 +120,7 @@
             const [activeQuestion, setActiveQuestion] = useState(null);
             const activeQuestionRef = useRef(null);
             const lastTriggeredQuestionIdRef = useRef(null); 
+            const prevTimeRef = useRef(undefined); // Protects against browser lag missing the questions
 
             // Student Answers Object: { 1: true, 2: false }
             const [studentAnswers, setStudentAnswers] = useState(getSavedAnswers());
@@ -267,11 +276,12 @@
                         
                         if (Date.now() - lastSeekTimeRef.current < 1500) {
                             setCurrentTime(time);
+                            prevTimeRef.current = time;
                             return;
                         }
                         
                         let currentMax = maxTimeWatchedRef.current;
-                        const JUMP_TOLERANCE = 3;
+                        const JUMP_TOLERANCE = 8; // Increased tolerance so natural buffering/lag doesn't block progress
 
                         // Strict Anti-Fast-Forward
                         if (!isTeacherModeRef.current && time > currentMax + JUMP_TOLERANCE) { 
@@ -279,25 +289,28 @@
                             lastSeekTimeRef.current = Date.now();
                             return;
                         } else {
-                            if (time > currentMax && (time - currentMax) <= JUMP_TOLERANCE) {
-                                const newMax = time;
-                                maxTimeWatchedRef.current = newMax;
-                                setMaxTimeWatched(newMax);
-                                localStorage.setItem('borges_video_max_time_hash', btoa(SALT + newMax.toString())); 
+                            if (time > currentMax) {
+                                maxTimeWatchedRef.current = time;
+                                setMaxTimeWatched(time);
+                                localStorage.setItem('borges_video_max_time_hash', encodeBase64(SALT + time.toString())); 
                             }
                         }
 
                         if (time > 0 || currentMax === 0) {
                             setCurrentTime(time);
-                            localStorage.setItem('borges_video_curr_time_hash', btoa(SALT + time.toString())); 
+                            localStorage.setItem('borges_video_curr_time_hash', encodeBase64(SALT + time.toString())); 
                         }
 
-                        // === Dynamic Rewind & Question Triggering ===
+                        // === Dynamic Rewind & Guaranteed Question Triggering ===
                         if (!activeQuestionRef.current) {
-                            // Find any question that belongs to the current exact 1-second timestamp
-                            const upcoming = QUIZ_QUESTIONS.find(q => 
-                                time >= q.timestamp && time < q.timestamp + 1
-                            );
+                            const prev = prevTimeRef.current !== undefined ? prevTimeRef.current : time;
+                            
+                            // Find any question that belongs to the current time, even if skipped over slightly by computer lag
+                            const upcoming = QUIZ_QUESTIONS.find(q => {
+                                const inWindow = time >= q.timestamp && time < q.timestamp + 2;
+                                const passedByLag = prev <= q.timestamp && time > q.timestamp && (time - prev) < 5;
+                                return inWindow || passedByLag;
+                            });
                             
                             if (upcoming && lastTriggeredQuestionIdRef.current !== upcoming.id) {
                                 player.pauseVideo();
@@ -305,10 +318,12 @@
                                 activeQuestionRef.current = upcoming;
                                 lastTriggeredQuestionIdRef.current = upcoming.id;
                             } else if (!upcoming) {
-                                lastTriggeredQuestionIdRef.current = null;
+                                // Clear it so it can re-trigger if they rewind past it later
+                                lastTriggeredQuestionIdRef.current = null; 
                             }
                         }
 
+                        prevTimeRef.current = time;
                     }, 250);
                 } else {
                     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -353,6 +368,7 @@
                 lastSeekTimeRef.current = Date.now(); 
                 player.seekTo(newTime, true);
                 setCurrentTime(newTime);
+                prevTimeRef.current = newTime;
             };
 
             const toggleFullscreen = () => {
@@ -371,29 +387,27 @@
                 }
             };
 
-            const handleTimelineClick = (e) => {
+            const handleTimelineSlider = (e) => {
                 if (!player) return;
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickRatio = (e.clientX - rect.left) / rect.width;
-                let targetTime = clickRatio * MAX_ALLOWED_TIME;
+                let targetTime = parseFloat(e.target.value);
 
+                // Blocks fast forwarding but cleanly glides when rewinding natively
                 if (!isTeacherModeRef.current) {
-                    // Strict Timeline Block: Clamp click attempts exactly to max watched time
                     if (targetTime > maxTimeWatchedRef.current) {
                         targetTime = maxTimeWatchedRef.current; 
                     }
                 } else {
-                    // Teacher Mode: Update the official max watched time allowing questions to trigger correctly
                     if (targetTime > maxTimeWatchedRef.current) {
                         maxTimeWatchedRef.current = targetTime;
                         setMaxTimeWatched(targetTime);
-                        localStorage.setItem('borges_video_max_time_hash', btoa(SALT + targetTime.toString()));
+                        localStorage.setItem('borges_video_max_time_hash', encodeBase64(SALT + targetTime.toString()));
                     }
                 }
                  
                 lastSeekTimeRef.current = Date.now(); 
                 player.seekTo(targetTime, true);
                 setCurrentTime(targetTime);
+                prevTimeRef.current = targetTime;
             };
 
             const handleOptionClick = (index) => {
@@ -412,7 +426,7 @@
                     const next = { ...prev, [questionId]: false };
                     studentAnswersRef.current = next;
                     try {
-                        localStorage.setItem('borges_video_answers_hash', btoa(SALT + JSON.stringify(next)));
+                        localStorage.setItem('borges_video_answers_hash', encodeBase64(SALT + JSON.stringify(next)));
                     } catch(err) {}
                     return next;
                 });
@@ -433,7 +447,7 @@
                     const next = { ...prev, [questionId]: isCorrect };
                     studentAnswersRef.current = next;
                     try {
-                        localStorage.setItem('borges_video_answers_hash', btoa(SALT + JSON.stringify(next)));
+                        localStorage.setItem('borges_video_answers_hash', encodeBase64(SALT + JSON.stringify(next)));
                     } catch(err) {}
                     return next;
                 });
@@ -458,25 +472,25 @@
             const handleFirstNameChange = (e) => {
                 setFirstName(e.target.value);
                 firstNameRef.current = e.target.value;
-                localStorage.setItem('borges_video_first_name', btoa(SALT + e.target.value));
+                localStorage.setItem('borges_video_first_name', encodeBase64(SALT + e.target.value));
             };
             const handleLastNameChange = (e) => {
                 setLastName(e.target.value);
                 lastNameRef.current = e.target.value;
-                localStorage.setItem('borges_video_last_name', btoa(SALT + e.target.value));
+                localStorage.setItem('borges_video_last_name', encodeBase64(SALT + e.target.value));
             };
             const handlePeriodChange = (e) => {
-                setPeriod(e.target.value);
-                periodRef.current = e.target.value;
-                localStorage.setItem('borges_video_period', btoa(SALT + e.target.value));
+                setStudentPeriod(e.target.value);
+                studentPeriodRef.current = e.target.value;
+                localStorage.setItem('borges_video_period', encodeBase64(SALT + e.target.value));
             };
             const handleEmailChange = (e) => {
-                setEmail(e.target.value);
-                emailRef.current = e.target.value;
-                localStorage.setItem('borges_video_email', btoa(SALT + e.target.value));
+                setStudentEmail(e.target.value);
+                studentEmailRef.current = e.target.value;
+                localStorage.setItem('borges_video_email', encodeBase64(SALT + e.target.value));
             };
 
-            const isFormValid = firstName.trim() && lastName.trim() && period && email.trim();
+            const isFormValid = Boolean(firstName?.trim() && lastName?.trim() && studentPeriod && studentEmail?.trim());
 
             const calculateScore = () => {
                 return Object.values(studentAnswersRef.current).filter(val => val === true).length;
@@ -500,8 +514,8 @@
                     ["Assignment", "Jorge Luis Borges - The Mirror Man"],
                     ["First Name", firstNameRef.current],
                     ["Last Name", lastNameRef.current],
-                    ["Period", periodRef.current],
-                    ["Email", emailRef.current],
+                    ["Period", studentPeriodRef.current],
+                    ["Email", studentEmailRef.current],
                     ["Date Completed", new Date().toLocaleString()],
                     ["Final Score", `${finalScore} / ${QUIZ_QUESTIONS.length}`],
                     ["Max Time Watched (seconds)", Math.floor(maxTimeWatchedRef.current)],
@@ -613,7 +627,7 @@
                             <div>
                                 <label className="block text-xs sm:text-sm font-bold text-slate-300 mb-1">Period: <span className="text-red-400">*</span></label>
                                 <select 
-                                    value={period}
+                                    value={studentPeriod}
                                     onChange={handlePeriodChange}
                                     className="w-full bg-slate-900 text-white px-3 py-2 rounded-lg border border-slate-500 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                                 >
@@ -631,7 +645,7 @@
                                 <label className="block text-xs sm:text-sm font-bold text-slate-300 mb-1">Email: <span className="text-red-400">*</span></label>
                                 <input 
                                     type="email" 
-                                    value={email}
+                                    value={studentEmail}
                                     onChange={handleEmailChange}
                                     placeholder="student@email.com"
                                     className="w-full bg-slate-900 text-white px-3 py-2 rounded-lg border border-slate-500 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
@@ -853,19 +867,16 @@
                         {/* Custom Control Bar */}
                         <div className={`w-full bg-slate-800 p-4 sm:p-5 flex flex-col gap-3 z-40 ${isFullscreen ? 'pb-8' : ''}`}>
                             {/* Timeline strictly mapped to the assigned duration */}
-                            <div 
-                                className="relative w-full h-3 bg-slate-700 rounded-full group cursor-pointer"
-                                onClick={handleTimelineClick}
-                            >
+                            <div className="relative w-full h-4 bg-slate-700 rounded-full group flex items-center">
                                 {/* Max Watched Buffer */}
                                 <div 
-                                    className="absolute top-0 left-0 h-full bg-slate-500 rounded-full opacity-50 transition-all duration-200"
+                                    className="absolute top-0 left-0 h-full bg-slate-500 rounded-full opacity-50 transition-all duration-200 pointer-events-none"
                                     style={maxWatchedStyle}
                                 ></div>
                                 
                                 {/* Current Time Progress */}
                                 <div 
-                                    className="absolute top-0 left-0 h-full bg-blue-500 rounded-full transition-all duration-200"
+                                    className="absolute top-0 left-0 h-full bg-blue-500 rounded-full transition-all duration-200 pointer-events-none"
                                     style={currentTimeStyle}
                                 ></div>
 
@@ -881,12 +892,23 @@
                                     return (
                                         <div 
                                             key={q.id}
-                                            className={`absolute top-1/2 -translate-y-1/2 w-1.5 h-3 rounded-full ${dotColor}`}
+                                            className={`absolute top-1/2 -translate-y-1/2 w-1.5 h-4 rounded-full pointer-events-none ${dotColor}`}
                                             style={markerStyle}
-                                            title={`Question ${q.id}`}
                                         ></div>
                                     );
                                 })}
+
+                                {/* Invisible Native Range Slider for Flawless Scrubbing */}
+                                <input 
+                                    type="range" 
+                                    min="0" 
+                                    max={MAX_ALLOWED_TIME} 
+                                    value={currentTime}
+                                    step="0.1"
+                                    onChange={handleTimelineSlider}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30"
+                                    title="Seek"
+                                />
                             </div>
 
                             {/* Controls row */}
