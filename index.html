@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Video Assignment</title>
+    <title>Jorge Luis Borges - The Mirror Man</title>
     
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,135 +21,59 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // 2 hours, 56 min, 34 seconds in seconds
-        const MAX_ALLOWED_TIME = 10594; 
-        const VIDEO_ID = '1BK5i-1smac';
+        // 47 minutes, 30 seconds in seconds
+        const MAX_ALLOWED_TIME = 2850; 
+        const VIDEO_ID = 'yCKgf6liXvQ';
 
-        // 100 Questions strictly synchronized to the provided transcript 
+        // 20 Questions strictly synchronized to the Borges transcript 
         const QUIZ_QUESTIONS = [
-            { id: 1, timestamp: 45, text: "Which peninsula was the pre-eminent power without a shadow of a doubt at this time?", options: ["The Italian Peninsula", "The Iberian Peninsula", "The Balkan Peninsula", "The Scandinavian Peninsula"], correctIndex: 1 },
-            { id: 2, timestamp: 72, text: "Who is described as a 'small-time Italian mapmaker' whose mistake birthed the Age of Exploration?", options: ["Vasco da Gama", "Ferdinand Magellan", "Christopher Columbus", "Amerigo Vespucci"], correctIndex: 2 },
-            { id: 3, timestamp: 82, text: "Columbus inaugurated the process of conquest, and became the first what 'by accident'?", options: ["Priest", "Emperor", "King", "Conquistador"], correctIndex: 3 },
-            { id: 4, timestamp: 160, text: "Which three leading Christian Kingdoms existed in the Iberian Peninsula in the 15th century?", options: ["Portugal, Castile, Aragon", "England, France, Spain", "Italy, Greece, Sicily", "Navarre, Leon, Galicia"], correctIndex: 0 },
-            { id: 5, timestamp: 188, text: "The name 'Spain' traces its origin back to which Latin word from the Roman period?", options: ["Iberia", "Lusitania", "Hispania", "Romana"], correctIndex: 2 },
-            { id: 6, timestamp: 235, text: "Which two monarchs' marriage helped unify the power of Aragon and Castile?", options: ["Henry and Elizabeth", "Philip and Mary", "Charles and Catherine", "Ferdinand and Isabella"], correctIndex: 3 },
-            { id: 7, timestamp: 315, text: "In 1492, which kingdom fell to Queen Isabella's army, marking the end of the Muslim Kingdoms on the Iberian Peninsula?", options: ["Cordoba", "Granada", "Seville", "Valencia"], correctIndex: 1 },
-            { id: 8, timestamp: 345, text: "What institution was created to police new converts and Christians in general?", options: ["The Inquisition", "The Knights Templar", "The Crusaders", "The Jesuit Order"], correctIndex: 0 },
-            { id: 9, timestamp: 405, text: "For Europeans at this time, which continent was seen as the site of great wealth and luxuries?", options: ["Africa", "North America", "Asia", "Australia"], correctIndex: 2 },
-            { id: 10, timestamp: 425, text: "Which empire made the cost of Eastern Mediterranean trade higher by putting new taxes on the routes?", options: ["The Roman Empire", "The Byzantine Empire", "The Mongol Empire", "The Ottoman Empire"], correctIndex: 3 },
-            { id: 11, timestamp: 468, text: "Which country paved the way for Western Europeans to move across the Atlantic by developing trade routes along Atlantic Africa?", options: ["Spain", "France", "Portugal", "England"], correctIndex: 2 },
-            { id: 12, timestamp: 498, text: "Which island territories did Portugal gain during its early Atlantic explorations?", options: ["Madeira and the Azores", "Cuba and Hispaniola", "The Canaries", "The Bahamas"], correctIndex: 0 },
-            { id: 13, timestamp: 558, text: "In the European mind, the association between blackness, Africanness, and what institution became dominant?", options: ["Royalty", "Trade", "Slavery", "Exploration"], correctIndex: 2 },
-            { id: 14, timestamp: 622, text: "Besides being a sailor, what were Christopher Columbus's other professions?", options: ["Blacksmith and Farmer", "Priest and Scholar", "Merchant and Mapmaker", "Soldier and Governor"], correctIndex: 2 },
-            { id: 15, timestamp: 655, text: "After surviving a shipwreck, where did Columbus end up swimming to and starting his mapmaking career?", options: ["Spain", "Italy", "France", "Portugal"], correctIndex: 3 },
-            { id: 16, timestamp: 713, text: "What type of medieval map divided the world into Europe, Africa, and Asia?", options: ["A Mercator projection", "A T.O. map", "A Portolan Chart", "A topographical map"], correctIndex: 1 },
-            { id: 17, timestamp: 740, text: "What were the highly precise maps used by navigators called?", options: ["Astrolabes", "Portolan Charts", "Compass roses", "T.O. maps"], correctIndex: 1 },
-            { id: 18, timestamp: 822, text: "Why did kings in Europe initially question Columbus's theories with little success?", options: ["They didn't believe Asia existed", "They thought the ocean was boiling", "They questioned his theories about how big the earth was", "They didn't have any ships"], correctIndex: 2 },
-            { id: 19, timestamp: 852, text: "Did Columbus believe the world was smaller or larger than it actually is?", options: ["Much smaller", "Much larger", "Exactly the right size", "Flat"], correctIndex: 0 },
-            { id: 20, timestamp: 945, text: "Besides trade, what was a profound reason for Spain's ambitions, believing they were on a 'divine mission'?", options: ["To discover new animal species", "To escape a plague in Europe", "To find the fountain of youth", "The great judgment would not occur until the entire world was Catholic"], correctIndex: 3 },
-            { id: 21, timestamp: 980, text: "According to Columbus's contract with the king and queen, what specific location did he HAVE to reach to get his titles and profit?", options: ["India", "Africa", "Asia", "The Americas"], correctIndex: 2 },
-            { id: 22, timestamp: 1042, text: "What were the names of Columbus's three vessels?", options: ["Nina, Pinta, Santa Maria", "Victoria, Trinidad, Santiago", "Mayflower, Speedwell, Discovery", "Endeavour, Resolution, Adventure"], correctIndex: 0 },
-            { id: 23, timestamp: 1142, text: "What was the navigation technique called where a pilot pointed a compass from a known departure point and kept track of the distance?", options: ["Celestial navigation", "GPS", "Astrolabe tracking", "Dead reckoning"], correctIndex: 3 },
-            { id: 24, timestamp: 1185, text: "What tool, first developed by the Ancient Greeks, helped mariners roughly determine their latitude?", options: ["The Compass", "The Astrolabe", "The Sextant", "The Telescope"], correctIndex: 1 },
-            { id: 25, timestamp: 1244, text: "What gave Columbus's crew a glimmer of hope and prevented a mutiny?", options: ["They saw a lighthouse", "They found floating debris", "A sighting of birds flying overhead", "They tasted fresh water"], correctIndex: 2 },
-            { id: 26, timestamp: 1306, text: "What is the name of the indigenous linguistic and ethno-linguistic group Columbus encountered in the Caribbean?", options: ["The Aztec", "The Maya", "The Inca", "The Taino"], correctIndex: 3 },
-            { id: 27, timestamp: 1320, text: "What were the Taino nobles or chiefs known as?", options: ["Emperors", "Caciques", "Tlatoani", "Kings"], correctIndex: 1 },
-            { id: 28, timestamp: 1495, text: "How did Columbus describe the Taino people in his letters?", options: ["Fierce and warlike", "Advanced and sophisticated", "Docile, subservient, and easy to conquer", "Wealthy and powerful"], correctIndex: 2 },
-            { id: 29, timestamp: 1525, text: "What native watercraft astounded Columbus because some could carry 30 to 150 people?", options: ["Galleons", "Reed rafts", "Dug-out canoes", "Catamarans"], correctIndex: 2 },
-            { id: 30, timestamp: 1630, text: "When Columbus explored, he was searching for Zipangu, which is the island we now call what?", options: ["Cuba", "Hispaniola", "China", "Japan"], correctIndex: 3 },
-            { id: 31, timestamp: 1660, text: "What is the original native name for the island of Hispaniola?", options: ["Cuba", "Jamaica", "Haiti", "Puerto Rico"], correctIndex: 2 },
-            { id: 32, timestamp: 1712, text: "What aggressive action did Columbus take to try and solve his communication problems?", options: ["He burned their villages", "He stole Taino to try and use them as translators", "He gave up and went home", "He forced them to read Spanish books"], correctIndex: 1 },
-            { id: 33, timestamp: 1758, text: "Why did Columbus choose to call the native people 'Indios'?", options: ["It meant 'friendly' in Spanish", "It was their actual name", "He believed he had made it to the Indies (Asia)", "He misheard a Taino word"], correctIndex: 2 },
-            { id: 34, timestamp: 1895, text: "In his diary to the kings, how did Columbus falsely describe the tropical region?", options: ["As mostly barren rock", "As frozen and cold", "As most suitable for European agriculture", "As entirely underwater"], correctIndex: 2 },
-            { id: 35, timestamp: 1975, text: "What did Columbus suggest to the monarchs if he couldn't find enough gold?", options: ["They should send more ships", "They should give up the colony", "'We can trade for spices instead'", "'At least we have found Christian souls'"], correctIndex: 3 },
-            { id: 36, timestamp: 2065, text: "Before going to the Americas, Columbus traveled with Portuguese sailors to the coast of Ghana and experienced trading in what?", options: ["Spices", "Silk", "Slaves", "Gold"], correctIndex: 2 },
-            { id: 37, timestamp: 2125, text: "What was the name of the first European settlement/fortress in the Americas, built from the remnants of the Santa Maria?", options: ["Santo Domingo", "La Isabela", "La Navidad", "San Juan"], correctIndex: 2 },
-            { id: 38, timestamp: 2230, text: "When Columbus returned to Spain, what did he bring with him besides gold and cassava?", options: ["Native people he forced to come to show the queen and sell as slaves", "A map of the entire continent", "Live tigers", "A vast army of willing recruits"], correctIndex: 0 },
-            { id: 39, timestamp: 2292, text: "Which European king was deeply unimpressed and felt the islands had been illicitly claimed by Spain?", options: ["The King of France", "The King of England", "The King of Italy", "The King of Portugal"], correctIndex: 3 },
-            { id: 40, timestamp: 2340, text: "What treaty created a dividing line through the middle of the Atlantic between Spanish and Portuguese areas?", options: ["The Treaty of Paris", "The Treaty of Tordesillas", "The Treaty of Versailles", "The Treaty of Madrid"], correctIndex: 1 },
-            { id: 41, timestamp: 2420, text: "According to the legal basis of their territorial control, what were the Spaniards responsible for doing to the natives?", options: ["Paying them wages", "Moving them to Europe", "Christianizing them", "Teaching them to sail"], correctIndex: 2 },
-            { id: 42, timestamp: 2495, text: "Why did Portugal feel fine signing the Treaty of Tordesillas?", options: ["They got all of the Americas", "They preserved the commercial potential of West Africa for themselves", "They hated the ocean", "They were paid in gold"], correctIndex: 1 },
-            { id: 43, timestamp: 2785, text: "What did the Papal Bulls grant the Spanish kings authority to do?", options: ["Trade exclusively in Africa", "Ignore the Pope's orders", "Build ships", "Spread through the Americas while converting the native population"], correctIndex: 3 },
-            { id: 44, timestamp: 2925, text: "What animals did the Spanish bring on the second voyage to start European life?", options: ["Llamas and Alpacas", "Elephants and tigers", "Cattle, pigs, horses, sheep, and goats", "Only dogs"], correctIndex: 2 },
-            { id: 45, timestamp: 3005, text: "When Columbus returned to La Navidad on his second voyage, what did he discover?", options: ["A thriving city", "The fort was burned down and all his men were killed", "A massive gold mine", "The natives had built their own ships"], correctIndex: 1 },
-            { id: 46, timestamp: 3068, text: "What was the new community Columbus established after La Navidad was destroyed?", options: ["Santo Domingo", "Havana", "San Salvador", "La Isabela"], correctIndex: 3 },
-            { id: 47, timestamp: 3200, text: "What Taíno word did the Spaniards latch onto to describe indigenous chiefs all over the Americas?", options: ["Tlatoani", "Inca", "Cacique", "Shaman"], correctIndex: 2 },
-            { id: 48, timestamp: 3270, text: "What caused a massive problem between the Spanish and the Taínos regarding food?", options: ["The Taínos refused to farm", "All the crops died of a disease", "The Spanish only ate meat", "The Spanish ate voraciously and there were not enough supplies"], correctIndex: 3 },
-            { id: 49, timestamp: 3350, text: "What was the Spanish tactic of 'a fuego y sangre'?", options: ["A peaceful negotiation", "A religious festival", "A type of farming", "A 'war of fire and blood' used against anyone who resisted"], correctIndex: 3 },
-            { id: 50, timestamp: 3428, text: "When Columbus returned to Hispaniola, what had happened to nearly two-thirds of the Europeans?", options: ["They had sailed back to Spain", "They became incredibly wealthy", "They had fatally succumbed to famine and disease", "They built a massive castle"], correctIndex: 2 },
-            { id: 51, timestamp: 3525, text: "What was the 'Encomienda' system supposed to be in theory?", options: ["A banking system", "An entrustment where a Spaniard protected and Christianized indigenous people in return for labor", "A system of building ships", "A purely native government"], correctIndex: 1 },
-            { id: 52, timestamp: 3585, text: "In reality, how did the Encomienda system operate?", options: ["It was very peaceful", "It was an equal partnership", "It was ignored by everyone", "It was heavily abused, exploiting, overworking, and effectively enslaving native people"], correctIndex: 3 },
-            { id: 53, timestamp: 3670, text: "What made the fights incredibly mismatched between the Spanish and the Taíno warriors?", options: ["The Taíno had guns", "The Spanish had steel swords and crossbows", "The Spanish had airplanes", "The Taíno were vastly outnumbered"], correctIndex: 1 },
-            { id: 54, timestamp: 3780, text: "Which influential monarch embodied the concern for the mistreatment of the Indians?", options: ["King Ferdinand", "Queen Elizabeth", "Queen Isabella of Castile", "King Philip"], correctIndex: 2 },
-            { id: 55, timestamp: 3815, text: "What happened to Columbus as a result of his mismanagement and brutality?", options: ["He was made King of the Americas", "He was executed on the island", "He discovered Peru", "He was shipped back to Spain in chains"], correctIndex: 3 },
-            { id: 56, timestamp: 3890, text: "Who took over as the formidable governor and solidified the Spanish grip through extreme aggression?", options: ["Nicolás de Ovando", "Francisco Pizarro", "Hernán Cortés", "Bartolomé de las Casas"], correctIndex: 0 },
-            { id: 57, timestamp: 3996, text: "What collective title was given to the thousands of people leaving Europe for the New World?", options: ["Pilgrims", "Conquistadors", "Puritans", "Privateers"], correctIndex: 1 },
-            { id: 58, timestamp: 4065, text: "How many people were typically packed into a shockingly small 16th-century ship?", options: ["20 to 30", "50 to 60", "100 to 120 with no bathroom", "Over 500"], correctIndex: 2 },
-            { id: 59, timestamp: 4200, text: "How did conquistadors fund their expeditions?", options: ["They were fully paid by the King", "It was a free public service", "They invested their own capital and brought their own weapons to get shares of the proceeds", "They robbed European banks"], correctIndex: 2 },
-            { id: 60, timestamp: 4310, text: "What was the catastrophic result of disease and abusive labor on Hispaniola's population by 1518?", options: ["It dropped from half a million to about 3,000 natives left", "It doubled in size", "It remained exactly the same", "The natives became completely immune"], correctIndex: 0 },
-            { id: 61, timestamp: 4425, text: "When indigenous labor became scarce, who did the Spanish turn to and import as enslaved workers?", options: ["Poor Europeans", "Captured pirates", "Native North Americans", "Enslaved Africans traded from the Portuguese"], correctIndex: 3 },
-            { id: 62, timestamp: 4462, text: "When gold declined, what became the next most important commodity and plantation crop in Hispaniola?", options: ["Cotton", "Tobacco", "Sugar", "Coffee"], correctIndex: 2 },
-            { id: 63, timestamp: 4520, text: "Who was the Dominican friar who renounced his encomienda and became known as the 'Apostle of the Indies' for defending indigenous rights?", options: ["Juan Palacios", "Antonio de Montesinos", "Hernán Cortés", "Bartolomé de las Casas"], correctIndex: 3 },
-            { id: 64, timestamp: 4690, text: "What was the document called the 'Requerimiento'?", options: ["A treaty of peace", "A recipe book", "A map of the ocean", "A legal rationale that demanded natives submit to Spain and Christianity or face war and enslavement"], correctIndex: 3 },
-            { id: 65, timestamp: 4782, text: "What disease did the Spanish bring that we now think of as swine flu?", options: ["Malaria", "Chickenpox", "Swine flu", "Rabies"], correctIndex: 2 },
-            { id: 66, timestamp: 4865, text: "What word did the Spanish coin by the 1520s to describe children born between Spaniards and indigenous women?", options: ["Criollos", "Peninsulares", "Mestizos", "Mulattos"], correctIndex: 2 },
-            { id: 67, timestamp: 5030, text: "The Caribbean served as a 'proving ground' for the Spanish to do what?", options: ["Identify and practice strategies of conquest to use on the mainland", "Build the tallest buildings", "Discover Asia", "Practice peaceful farming"], correctIndex: 0 },
-            { id: 68, timestamp: 5135, text: "What was the first major mainland conquest after the Caribbean, which gave access to another ocean?", options: ["Florida", "Panama", "Mexico", "Brazil"], correctIndex: 1 },
-            { id: 69, timestamp: 5310, text: "What background did Hernán Cortés come from in Spain?", options: ["The royal family", "He was an enslaved person", "A family of wealthy merchants", "The very lowest rank of nobility (hijo de algo)"], correctIndex: 3 },
-            { id: 70, timestamp: 5355, text: "As a municipal magistrate in Cuba, what was Cortés given?", options: ["A crown", "A fleet of 50 ships", "The entire island of Cuba", "A generous encomienda with forced native labor"], correctIndex: 3 },
-            { id: 71, timestamp: 5580, text: "Which peninsula did Francisco Hernández de Córdoba explore, facing fierce resistance from the Maya?", options: ["The Iberian Peninsula", "The Florida Peninsula", "The Yucatan Peninsula", "The Baja Peninsula"], correctIndex: 2 },
-            { id: 72, timestamp: 5695, text: "Did Cortés have Governor Velázquez's permission to sail to Mexico in 1519?", options: ["Yes, he was fully funded by him", "Yes, the King ordered it", "No, but he sneaked out on a rowboat", "No, Velázquez changed his mind but Cortés ignored him and sailed anyway"], correctIndex: 3 },
-            { id: 73, timestamp: 5890, text: "What was the collective term for the densely populated region around central Mexico and Central America?", options: ["The Andes", "The Caribbean Basin", "Mesoamerica", "The Pampas"], correctIndex: 2 },
-            { id: 74, timestamp: 6025, text: "Who was Doña Marina?", options: ["A Spanish queen", "A female conquistador", "A native goddess", "An indigenous girl who became an invaluable translator for Cortés"], correctIndex: 3 },
-            { id: 75, timestamp: 6105, text: "Instead of romantically burning his ships, what did Cortés actually do to prevent retreat?", options: ["He sold them to the Maya", "He sailed them back to Cuba", "He dismantled them, salvaged the materials, and burned the hulks", "He hid them in a cave"], correctIndex: 2 },
-            { id: 76, timestamp: 6235, text: "Where did the Aztecs build their capital city of Tenochtitlan?", options: ["In a vast desert", "In the middle of a lake (Lake Texcoco)", "On top of a high mountain peak", "Underground"], correctIndex: 1 },
-            { id: 77, timestamp: 6365, text: "Which independent indigenous group hated the Aztecs vehemently and allied with the Spanish?", options: ["The Mayans", "The Incas", "The Tlaxcalans", "The Olmecs"], correctIndex: 2 },
-            { id: 78, timestamp: 6590, text: "What did Cortés do to Moctezuma to gain control of Tenochtitlan?", options: ["He married his daughter", "He challenged him to a duel", "He poisoned his food", "He seized him as a prisoner and turned him into a puppet ruler"], correctIndex: 3 },
-            { id: 79, timestamp: 6702, text: "What atrocity did Pedro de Alvarado commit while Cortés was away?", options: ["He burned down the entire city", "He massacred the unarmed Mexica nobility during a ritual dance festival", "He surrendered to the Aztecs", "He stole all the Spanish gold"], correctIndex: 1 },
-            { id: 80, timestamp: 6815, text: "What was 'La Noche Triste' (The Sad Night)?", options: ["The night Moctezuma was born", "A Spanish celebration", "The night the Spanish arrived", "The night the Spaniards were forced to flee the city to avoid being massacred"], correctIndex: 3 },
-            { id: 81, timestamp: 6885, text: "How did Cortés prepare for the final siege of Tenochtitlan?", options: ["He ordered a fleet from Spain", "He built 12 small gunships (brigantines) and carried them over the mountains to control the lake", "He drained the entire lake", "He attacked from the air"], correctIndex: 1 },
-            { id: 82, timestamp: 6935, text: "What invisible ally devastated the city's population during the siege?", options: ["A massive earthquake", "A swarm of locusts", "A European disease (Smallpox)", "A hurricane"], correctIndex: 2 },
-            { id: 83, timestamp: 7100, text: "The name Mexico comes from the Nahuatl language, meaning what?", options: ["The city of gold", "The center of the world", "The place of the Mexica", "The lake of fire"], correctIndex: 2 },
-            { id: 84, timestamp: 7320, text: "Instead of being a superstitious coward, why do modern historians think Moctezuma let the Spanish in?", options: ["He was asleep", "He thought they were Gods", "He surrendered immediately", "He wanted to draw them in to study, learn from, and control them"], correctIndex: 3 },
-            { id: 85, timestamp: 7610, text: "Why did the King want to take control away from the conquistadors?", options: ["They were too poor", "He wanted to give it to the Aztecs", "They refused to fight", "They were acting with a great deal of autonomy and becoming a powerful alternative nobility"], correctIndex: 3 },
-            { id: 86, timestamp: 7845, text: "Which impoverished Spaniard trekked south to face the mighty Inca Empire?", options: ["Hernan Cortes", "Pedro de Alvarado", "Bartolome de las Casas", "Francisco Pizarro"], correctIndex: 3 },
-            { id: 87, timestamp: 8245, text: "Who led the conquest of the Maya in Guatemala?", options: ["Francisco Pizarro", "Hernan Cortes", "Pedro de Alvarado", "Christopher Columbus"], correctIndex: 2 },
-            { id: 88, timestamp: 8320, text: "The Maya were highly complex. Which of the following was NOT one of their achievements mentioned?", options: ["Building limestone temples", "Crafting jade art", "Building floating islands in a lake", "Being farmers and inventors"], correctIndex: 2 },
-            { id: 89, timestamp: 8760, text: "What is one of the things the Incas are best known for engineering?", options: ["A massive navy", "A 40,000-kilometer paved road system through the mountains", "Gunpowder", "Glass skyscrapers"], correctIndex: 1 },
-            { id: 90, timestamp: 8965, text: "What devastated the Inca Empire just before Pizarro arrived?", options: ["A massive earthquake", "A rebellion by the Maya", "A 10-year drought", "A civil war over succession and an outbreak of smallpox"], correctIndex: 3 },
-            { id: 91, timestamp: 9150, text: "When Pizarro arrived in Cajamarca with fewer than 200 men, how large was Atahualpa's army waiting nearby?", options: ["500 men", "1,000 men", "Tens of thousands (perhaps 80,000)", "They had no army"], correctIndex: 2 },
-            { id: 92, timestamp: 9318, text: "How did Pizarro's men react when Atahualpa threw the breviary (Bible) on the ground?", options: ["They ran away", "They surrendered", "They peacefully negotiated", "They sprang their trap, yelled 'Santiago', and launched a furious assault"], correctIndex: 3 },
-            { id: 93, timestamp: 9435, text: "What massive ransom did Atahualpa offer to Pizarro?", options: ["All of his land", "To fill a room once with gold and twice with silver", "Ten thousand horses", "A map to El Dorado"], correctIndex: 1 },
-            { id: 94, timestamp: 9510, text: "After the ransom was paid, what did Pizarro do to Atahualpa?", options: ["He let him go", "He brought him to Spain", "He decided to execute him (garroted him)", "He made him his general"], correctIndex: 2 },
-            { id: 95, timestamp: 9715, text: "Who did the Spanish install as a puppet emperor to try and govern the Inca?", options: ["Moctezuma", "Manco Inca", "Huascar", "Pachacuti"], correctIndex: 1 },
-            { id: 96, timestamp: 9790, text: "What terrifying European animals were used as weapons in battle by the Spanish?", options: ["Elephants", "Huge Spanish Mastiff war dogs", "Tigers", "Bears"], correctIndex: 1 },
-            { id: 97, timestamp: 9950, text: "What did Manco Inca stage in 1536 that almost drove the Spaniards from Peru?", options: ["A peaceful protest", "A massive naval battle", "The Great Rebellion, laying siege to Cuzco and Lima", "A mass migration"], correctIndex: 2 },
-            { id: 98, timestamp: 10245, text: "What massive discovery in Potosi changed the world economy?", options: ["A diamond mine", "A vast oil field", "A hidden city of gold", "A mountain of silver"], correctIndex: 3 },
-            { id: 99, timestamp: 10305, text: "How did Francisco Pizarro meet his end?", options: ["He died peacefully in his sleep", "He was executed by the King", "He drowned at sea", "He was stabbed to death in his home by a group of rogue conquistadors"], correctIndex: 3 },
-            { id: 100, timestamp: 10580, text: "As you finish the video, what must you do now?", options: ["Leave immediately", "Watch the next episode", "Close the tab without saving", "Ensure your results CSV file downloads and submit it to your teacher"], correctIndex: 3 }
+            { id: 1, timestamp: 45, text: "At what age was Jorge Luis Borges already destined to be a writer?", options: ["Nine", "Fifteen", "Twenty-one", "Thirty"], correctIndex: 0 },
+            { id: 2, timestamp: 85, text: "When did international fame finally reach Borges?", options: ["In his twenties", "In his sixties when he was already blind", "After his death", "During World War I"], correctIndex: 1 },
+            { id: 3, timestamp: 135, text: "Which major literary award always escaped Borges despite winning 46 others?", options: ["The Pulitzer Prize", "The Cervantes Prize", "The Nobel Prize for Literature", "The Formentor Prize"], correctIndex: 2 },
+            { id: 4, timestamp: 180, text: "In what city was Jorge Luis Borges born?", options: ["Madrid", "Geneva", "Buenos Aires", "Lima"], correctIndex: 2 },
+            { id: 5, timestamp: 215, text: "Where did Borges discover his endless love and pleasure for books?", options: ["In his school's library", "In his father's library", "At the National Library", "In a local bookstore"], correctIndex: 1 },
+            { id: 6, timestamp: 250, text: "What was the profession of Borges' father?", options: ["A lawyer who dreamed of being a writer", "A professional poet", "A politician", "A famous architect"], correctIndex: 0 },
+            { id: 7, timestamp: 355, text: "What did the young Borges fear more than anything else in his house?", options: ["The dark basement", "Spiders", "Mirrors and reflections", "Loud noises"], correctIndex: 2 },
+            { id: 8, timestamp: 420, text: "Which animal at the zoo fascinated Borges and symbolized an adventurous life?", options: ["The Lion", "The Elephant", "The Tiger", "The Bear"], correctIndex: 2 },
+            { id: 9, timestamp: 570, text: "Why did the Borges family move to Geneva, Switzerland?", options: ["To escape a war in Argentina", "To consult a specialist for his father's failing eyesight", "To find a publisher for Borges' book", "To start a new business"], correctIndex: 1 },
+            { id: 10, timestamp: 615, text: "What major global event kept the Borges family in Europe longer than expected?", options: ["The Spanish Civil War", "World War I", "World War II", "The Great Depression"], correctIndex: 1 },
+            { id: 11, timestamp: 670, text: "What was the title of Borges' first book of poems, inspired by his return to his hometown?", options: ["Ficciones", "The Aleph", "Fervor de Buenos Aires", "Labyrinths"], correctIndex: 2 },
+            { id: 12, timestamp: 980, text: "According to Borges, how does a real peasant or gaucho view the landscape?", options: ["For its aesthetic beauty", "As a place of spiritual reflection", "For its practicalities, like checking the weather", "As something to be conquered"], correctIndex: 2 },
+            { id: 13, timestamp: 1180, text: "What literary movement did Borges embrace in Spain that believed the metaphor was the essence of poetry?", options: ["Surrealism", "Ultraism", "Romanticism", "Realism"], correctIndex: 1 },
+            { id: 14, timestamp: 1220, text: "Who was the young writer Borges famously collaborated with under the pseudonym Bustos Domecq?", options: ["Gabriel García Márquez", "Julio Cortázar", "Adolfo Bioy Casares", "Victoria Ocampo"], correctIndex: 2 },
+            { id: 15, timestamp: 1515, text: "Where did Borges work to financially support his family after his father's death?", options: ["At a university as a professor", "At a small municipal library", "At a local newspaper", "At a law firm"], correctIndex: 1 },
+            { id: 16, timestamp: 1545, text: "What near-fatal accident did Borges suffer in 1938?", options: ["He was in a train crash", "He hit his head on an open, freshly painted window", "He fell off a horse", "He was caught in a street fight"], correctIndex: 1 },
+            { id: 17, timestamp: 1610, text: "What famous short story did Borges write to test if he had lost his mental abilities after his head injury?", options: ["The South", "The Library of Babel", "Pierre Menard, Author of Don Quixote", "The Circular Ruins"], correctIndex: 2 },
+            { id: 18, timestamp: 2135, text: "What prestigious position was Borges appointed to in 1955 after the fall of Perón?", options: ["Minister of Culture", "Director of the National Library", "President of the University", "Ambassador to Spain"], correctIndex: 1 },
+            { id: 19, timestamp: 2160, text: "What ironic fate did Borges share with two previous directors of the National Library?", options: ["They were all exiled", "They all went blind", "They all wrote the same book", "They were all from Geneva"], correctIndex: 1 },
+            { id: 20, timestamp: 2665, text: "In which city did Borges choose to spend his final days and die?", options: ["Buenos Aires", "Madrid", "Paris", "Geneva"], correctIndex: 3 }
         ];
 
         // Salt for Local Storage obfuscation
-        const SALT = "aztec_v1_";
+        const SALT = "borges_v2_";
 
-        const decodeData = (key, fallback) => {
+        const getSavedNum = (key) => {
             try {
                 const saved = localStorage.getItem(key);
-                if (saved) return parseFloat(atob(saved).replace(SALT, '')) || fallback;
+                if (saved) return parseFloat(atob(saved).replace(SALT, '')) || 0;
             } catch(e) {}
-            return fallback;
+            return 0;
+        };
+        
+        const getSavedStr = (key) => {
+            try {
+                const saved = localStorage.getItem(key);
+                if (saved) return atob(saved).replace(SALT, '');
+            } catch(e) {}
+            return "";
         };
 
-        const getSavedProgress = () => decodeData('aztec_video_max_time_hash', 0);
-        const getSavedCurrent = () => decodeData('aztec_video_curr_time_hash', 0);
-        const getSavedViolations = () => decodeData('aztec_video_violations_hash', 0);
-        
         const getSavedAnswers = () => {
             try {
-                const saved = localStorage.getItem('aztec_video_answers_hash');
-                if (saved) return new Set(JSON.parse(atob(saved).replace(SALT, '')));
+                const saved = localStorage.getItem('borges_video_answers_hash');
+                if (saved) return JSON.parse(atob(saved).replace(SALT, ''));
             } catch(e) {}
-            return new Set();
+            return {};
         };
 
         const TEACHER_PIN = "1234";
@@ -159,31 +83,38 @@
             
             const [player, setPlayer] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
-            const [currentTime, setCurrentTime] = useState(getSavedCurrent);
+            const [currentTime, setCurrentTime] = useState(() => getSavedNum('borges_video_curr_time_hash'));
             const [ccEnabled, setCcEnabled] = useState(false);
             const [playbackRate, setPlaybackRate] = useState(1);
             
-            const [maxTimeWatched, setMaxTimeWatched] = useState(getSavedProgress);
-            const maxTimeWatchedRef = useRef(getSavedProgress());
+            const [maxTimeWatched, setMaxTimeWatched] = useState(() => getSavedNum('borges_video_max_time_hash'));
+            const maxTimeWatchedRef = useRef(getSavedNum('borges_video_max_time_hash'));
             const lastSeekTimeRef = useRef(0);
             
+            const [studentName, setStudentName] = useState(() => getSavedStr('borges_video_student_name'));
+            const studentNameRef = useRef(studentName);
+
             // Tab violation tracking
-            const [violations, setViolations] = useState(getSavedViolations);
+            const [violations, setViolations] = useState(() => getSavedNum('borges_video_violations_hash'));
             const [showExitWarning, setShowExitWarning] = useState(false);
             const playbackRateRef = useRef(1);
 
             // Question Tracking Logic
             const [activeQuestion, setActiveQuestion] = useState(null);
             const activeQuestionRef = useRef(null);
-            activeQuestionRef.current = activeQuestion;
+            const lastTriggeredQuestionIdRef = useRef(null); // Prevents rapid re-triggering, resets when leaving window
 
-            const [answeredQuestions, setAnsweredQuestions] = useState(getSavedAnswers());
-            const answeredQuestionsRef = useRef(getSavedAnswers());
-            answeredQuestionsRef.current = answeredQuestions;
+            // Student Answers Object: { 1: true, 2: false }
+            const [studentAnswers, setStudentAnswers] = useState(getSavedAnswers());
 
+            // Modal Interactions
             const [selectedOption, setSelectedOption] = useState(null);
             const [showFeedback, setShowFeedback] = useState(false);
             
+            // Refs for hot paths (event listeners)
+            const selectedOptionRef = useRef(null);
+            const showFeedbackRef = useRef(false);
+
             // Teacher Mode States
             const [isTeacherMode, setIsTeacherMode] = useState(false);
             const isTeacherModeRef = useRef(false);
@@ -194,12 +125,28 @@
             const playerContainerRef = useRef(null);
             const intervalRef = useRef(null);
 
-            // Browser 'Confirm Exit' Dialog (beforeunload)
+            // Keyboard navigation for Skip/Continue
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (activeQuestionRef.current && e.key === 'Enter') {
+                        e.preventDefault(); 
+                        if (showFeedbackRef.current) {
+                            handleContinueVideo();
+                        } else {
+                            handleSkip();
+                        }
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [player]);
+
+            // Browser 'Confirm Exit' Dialog
             useEffect(() => {
                 const handleBeforeUnload = (e) => {
                     if (view === 'video' && !isTeacherModeRef.current) {
                         e.preventDefault();
-                        e.returnValue = ''; // Trigger the browser's default warning dialog
+                        e.returnValue = ''; 
                     }
                 };
                 window.addEventListener("beforeunload", handleBeforeUnload);
@@ -208,9 +155,7 @@
 
             // Mouse Leave (Exit Intent) and Tab Visibility Detection
             useEffect(() => {
-                // 1. Mouse Leave Intent Detection
                 const handleMouseLeave = (e) => {
-                    // Trigger if the mouse leaves from the top of the window (going towards tabs/URL bar)
                     if (e.clientY <= 10 && view === 'video' && !isTeacherModeRef.current) {
                         setShowExitWarning(true);
                     }
@@ -220,7 +165,6 @@
                     setShowExitWarning(false);
                 };
 
-                // 2. Actual Tab Changed (Silent Penalty applied)
                 const handleVisibilityChange = () => {
                     if (document.hidden && view === 'video' && !isTeacherModeRef.current) {
                         if (player && typeof player.pauseVideo === 'function') {
@@ -234,8 +178,8 @@
                             maxTimeWatchedRef.current = newMax;
                             setMaxTimeWatched(newMax);
                             
-                            localStorage.setItem('aztec_video_max_time_hash', btoa(SALT + newMax.toString()));
-                            localStorage.setItem('aztec_video_curr_time_hash', btoa(SALT + newTime.toString()));
+                            localStorage.setItem('borges_video_max_time_hash', btoa(SALT + newMax.toString()));
+                            localStorage.setItem('borges_video_curr_time_hash', btoa(SALT + newTime.toString()));
                             
                             lastSeekTimeRef.current = Date.now();
                             player.seekTo(newTime, true);
@@ -244,7 +188,7 @@
                         
                         setViolations(prev => {
                             const newCount = prev + 1;
-                            localStorage.setItem('aztec_video_violations_hash', btoa(SALT + newCount.toString()));
+                            localStorage.setItem('borges_video_violations_hash', btoa(SALT + newCount.toString()));
                             return newCount;
                         });
                     }
@@ -282,7 +226,7 @@
             }, [view]);
 
             const initializePlayer = () => {
-                const startTime = Math.floor(getSavedCurrent());
+                const startTime = Math.floor(getSavedNum('borges_video_curr_time_hash'));
                 const newPlayer = new window.YT.Player(playerContainerRef.current, {
                     videoId: VIDEO_ID,
                     playerVars: {
@@ -301,9 +245,8 @@
                             setPlayer(event.target);
                             event.target.setOption('captions', 'track', {}); 
                             
-                            const savedTime = getSavedCurrent();
-                            if (savedTime > 0) {
-                                event.target.seekTo(savedTime, true);
+                            if (startTime > 0) {
+                                event.target.seekTo(startTime, true);
                                 lastSeekTimeRef.current = Date.now();
                             }
                         },
@@ -352,25 +295,31 @@
                                 const newMax = time;
                                 maxTimeWatchedRef.current = newMax;
                                 setMaxTimeWatched(newMax);
-                                localStorage.setItem('aztec_video_max_time_hash', btoa(SALT + newMax.toString())); 
+                                localStorage.setItem('borges_video_max_time_hash', btoa(SALT + newMax.toString())); 
                             }
                         }
 
                         if (time > 0 || currentMax === 0) {
                             setCurrentTime(time);
-                            localStorage.setItem('aztec_video_curr_time_hash', btoa(SALT + time.toString())); 
+                            localStorage.setItem('borges_video_curr_time_hash', btoa(SALT + time.toString())); 
                         }
 
+                        // === Dynamic Rewind & Question Triggering ===
                         if (!activeQuestionRef.current) {
+                            // Find any question that belongs to the current exact 1-second timestamp
                             const upcoming = QUIZ_QUESTIONS.find(q => 
-                                time >= q.timestamp && 
-                                time < q.timestamp + 1 && 
-                                !answeredQuestionsRef.current.has(q.id)
+                                time >= q.timestamp && time < q.timestamp + 1
                             );
                             
-                            if (upcoming) {
+                            if (upcoming && lastTriggeredQuestionIdRef.current !== upcoming.id) {
+                                // If found, and we haven't JUST triggered it, pop it up!
                                 player.pauseVideo();
                                 setActiveQuestion(upcoming);
+                                activeQuestionRef.current = upcoming;
+                                lastTriggeredQuestionIdRef.current = upcoming.id;
+                            } else if (!upcoming) {
+                                // Once we are out of any 1-second window, clear the lock so it can be re-triggered if rewound
+                                lastTriggeredQuestionIdRef.current = null;
                             }
                         }
 
@@ -434,7 +383,7 @@
                     if (targetTime > maxTimeWatchedRef.current) {
                         maxTimeWatchedRef.current = targetTime;
                         setMaxTimeWatched(targetTime);
-                        localStorage.setItem('aztec_video_max_time_hash', btoa(SALT + targetTime.toString()));
+                        localStorage.setItem('borges_video_max_time_hash', btoa(SALT + targetTime.toString()));
                     }
                 }
                 
@@ -444,20 +393,55 @@
             };
 
             const handleOptionClick = (index) => {
-                if (showFeedback) return; 
+                if (showFeedbackRef.current) return; 
                 setSelectedOption(index);
+                selectedOptionRef.current = index;
                 setShowFeedback(true);
+                showFeedbackRef.current = true;
+            };
+
+            const handleSkip = () => {
+                // Skips register as an incorrect/false answer
+                setStudentAnswers(prev => {
+                    const next = { ...prev, [activeQuestionRef.current.id]: false };
+                    localStorage.setItem('borges_video_answers_hash', btoa(SALT + JSON.stringify(next)));
+                    return next;
+                });
+                
+                resetModalState();
             };
 
             const handleContinueVideo = () => {
-                const newAnswers = new Set(answeredQuestions).add(activeQuestion.id);
-                setAnsweredQuestions(newAnswers);
-                localStorage.setItem('aztec_video_answers_hash', btoa(SALT + JSON.stringify(Array.from(newAnswers))));
+                setStudentAnswers(prev => {
+                    const isCorrect = selectedOptionRef.current === activeQuestionRef.current.correctIndex;
+                    const next = { ...prev, [activeQuestionRef.current.id]: isCorrect };
+                    localStorage.setItem('borges_video_answers_hash', btoa(SALT + JSON.stringify(next)));
+                    return next;
+                });
+                
+                resetModalState();
+            };
+
+            const resetModalState = () => {
                 setActiveQuestion(null);
+                activeQuestionRef.current = null;
                 setSelectedOption(null);
+                selectedOptionRef.current = null;
                 setShowFeedback(false);
+                showFeedbackRef.current = false;
+                
                 lastSeekTimeRef.current = Date.now(); 
                 player.playVideo();
+            };
+
+            const handleNameChange = (e) => {
+                setStudentName(e.target.value);
+                studentNameRef.current = e.target.value;
+                localStorage.setItem('borges_video_student_name', btoa(SALT + e.target.value));
+            };
+
+            const calculateScore = () => {
+                return Object.values(studentAnswers).filter(val => val === true).length;
             };
 
             const formatTime = (seconds) => {
@@ -471,21 +455,28 @@
             const currentTimeStyle = { width: `${(currentTime / MAX_ALLOWED_TIME) * 100 || 0}%` };
 
             const downloadCSV = () => {
+                const finalScore = calculateScore();
+                
                 const rows = [
-                    ["Metric", "Value"],
+                    ["Field", "Value"],
+                    ["Assignment", "Jorge Luis Borges - The Mirror Man"],
+                    ["Student Name", studentNameRef.current],
+                    ["Date Completed", new Date().toLocaleString()],
+                    ["Final Score", `${finalScore} / ${QUIZ_QUESTIONS.length}`],
                     ["Max Time Watched (seconds)", Math.floor(maxTimeWatchedRef.current)],
-                    ["Total Tab Violations", violations],
-                    ["Questions Completed", `${answeredQuestionsRef.current.size} / ${QUIZ_QUESTIONS.length}`],
-                    ["Completion Date", new Date().toLocaleString()]
+                    ["Cheating Alert (Tab Violations)", violations]
                 ];
                 
                 const csvContent = rows.map(r => r.join(",")).join("\n");
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
+                
+                const safeName = studentNameRef.current.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'student';
                 link.setAttribute("href", url);
-                link.setAttribute("download", "student_video_results.csv");
+                link.setAttribute("download", `${safeName}_borges_results.csv`);
                 link.style.visibility = 'hidden';
+                
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -518,7 +509,7 @@
 
             if (view === 'instructions') {
                 return (
-                    <div className="max-w-4xl w-full bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700 relative">
+                    <div className="max-w-2xl w-full bg-slate-800 p-6 sm:p-10 rounded-2xl shadow-2xl border border-slate-700 relative max-h-[90vh] overflow-y-auto">
                         {!isTeacherMode ? (
                             <button 
                                 onClick={() => setShowPinModal(true)}
@@ -537,33 +528,41 @@
                             </button>
                         )}
 
-                        <h1 className="text-4xl font-black text-white mb-8 border-b border-slate-700 pb-6 uppercase tracking-wider text-center">
-                            Instructions
+                        <h1 className="text-3xl sm:text-4xl font-black text-white mb-6 border-b border-slate-700 pb-4 sm:pb-6 uppercase tracking-wider text-center">
+                            Jorge Luis Borges<br/>
+                            <span className="text-xl sm:text-2xl text-blue-400 block mt-2">The Mirror Man</span>
                         </h1>
-                        <div className="space-y-6 text-2xl leading-relaxed text-slate-200 font-medium">
+                        <div className="space-y-4 sm:space-y-6 text-base sm:text-lg leading-relaxed text-slate-200 font-medium">
                             <p>
-                                Watch only the first <strong className="text-amber-400">2 hours, 56 min 34 seconds</strong> (that is the first 4 episodes of the show).
-                            </p>
-                            <p>
-                                The video will periodically pause to ask you questions. You must answer them to continue.
+                                Watch the complete documentary. The video will periodically pause to ask you <strong>20 questions</strong>.
                             </p>
                             <p>
-                                You will have either 2 or 4 class periods to complete this assignment (depending on A or B day). 
+                                You can choose to skip a question, but it will count as incorrect. If you rewind the video, you will have the opportunity to answer the question again based on the timestamp.
                             </p>
-                            <p className="text-red-400 font-bold bg-red-900/20 p-4 rounded-xl border border-red-500/30">
-                                At the end of the video, your final score will be generated and downloaded. You must submit this downloaded file to your teacher.
+                            <p className="text-red-400 font-bold bg-red-900/20 p-4 rounded-xl border border-red-500/30 text-base">
+                                At the end of the video, your final score window will appear and download a CSV file. You must submit this downloaded file to your teacher!
                             </p>
-                            <p className="text-xl text-slate-400 italic">
-                                One of this is going to be considered a test grade.
-                            </p>
-                            <p className="text-lg text-green-400 font-bold bg-green-900/20 p-4 rounded-xl border border-green-500/30">
+                            <p className="text-sm sm:text-base text-green-400 font-bold bg-green-900/20 p-4 rounded-xl border border-green-500/30">
                                 💾 Your progress is automatically saved. If you accidentally close this tab, you will resume exactly where you left off.
                             </p>
                         </div>
-                        <div className="mt-12 flex justify-center">
+                        
+                        <div className="bg-slate-700/40 p-5 sm:p-6 rounded-xl border border-slate-600 mt-8 sm:mt-10">
+                            <label className="block text-lg sm:text-xl font-bold text-white mb-2">Student Name: <span className="text-red-400">*</span></label>
+                            <input 
+                                type="text" 
+                                value={studentName}
+                                onChange={handleNameChange}
+                                placeholder="Enter your full name to begin..."
+                                className="w-full bg-slate-900 text-white px-4 py-3 rounded-lg border border-slate-500 focus:outline-none focus:border-blue-500 text-base sm:text-lg"
+                            />
+                        </div>
+
+                        <div className="mt-6 sm:mt-8 flex justify-center pb-2">
                             <button 
                                 onClick={() => setView('video')}
-                                className="bg-green-600 hover:bg-green-500 text-white px-12 py-5 rounded-xl font-black text-2xl shadow-[0_0_20px_rgba(22,163,74,0.4)] transition-all transform hover:scale-105 uppercase tracking-wide"
+                                disabled={!studentName.trim()}
+                                className={`px-8 py-4 sm:px-12 sm:py-5 rounded-xl font-black text-xl sm:text-2xl uppercase tracking-wide transition-all transform ${studentName.trim() ? 'bg-green-600 hover:bg-green-500 text-white shadow-[0_0_20px_rgba(22,163,74,0.4)] hover:scale-105' : 'bg-slate-600 text-slate-400 cursor-not-allowed'}`}
                             >
                                 Go to the Video
                             </button>
@@ -604,13 +603,18 @@
                 return (
                     <div className="max-w-3xl w-full bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700 text-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-green-400 mb-6"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-                        <h1 className="text-4xl font-black text-white mb-4">Video Completed</h1>
-                        <p className="text-2xl text-slate-300 mb-4">
-                            You have reached the 2 hour, 56 minute, and 34-second mark.
-                        </p>
-                        <p className="text-xl text-slate-400 mb-8 font-mono">
-                            Final Interactive Score: {answeredQuestions.size} / 100
-                        </p>
+                        <h1 className="text-4xl font-black text-white mb-2">Video Completed</h1>
+                        <h2 className="text-xl text-blue-400 font-bold mb-6">{studentName}</h2>
+                        
+                        <div className="bg-slate-900 border border-slate-600 rounded-xl p-8 mb-8 inline-block shadow-inner">
+                            <p className="text-slate-400 text-lg uppercase tracking-widest font-bold mb-2">Final Score</p>
+                            <p className="text-6xl font-black text-white">
+                                <span className={calculateScore() >= 14 ? 'text-green-400' : 'text-amber-400'}>
+                                    {calculateScore()}
+                                </span> 
+                                <span className="text-3xl text-slate-500"> / 20</span>
+                            </p>
+                        </div>
                         
                         <div className="bg-slate-700/50 rounded-xl p-6 mb-8 border border-slate-600">
                             <h3 className="text-xl font-bold text-blue-400 mb-2">📥 Results Downloaded Automatically</h3>
@@ -633,7 +637,7 @@
             return (
                 <div className="w-full flex flex-col items-center gap-6 animate-fadeIn">
                     <div className="text-center space-y-2">
-                        <h1 className="text-3xl font-bold text-white">Class Video Assignment</h1>
+                        <h1 className="text-3xl font-bold text-white">Jorge Luis Borges - The Mirror Man</h1>
                         {isTeacherMode ? (
                             <div className="flex flex-col items-center gap-3">
                                 <p className="text-green-400 font-bold bg-green-900/30 px-4 py-1 rounded-full inline-block border border-green-500/50">
@@ -685,7 +689,7 @@
                                             {activeQuestion.text}
                                         </h2>
                                         <span className="bg-blue-600 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap ml-4">
-                                            Question {activeQuestion.id} of 100
+                                            Question {activeQuestion.id} of 20
                                         </span>
                                     </div>
                                     
@@ -721,19 +725,34 @@
                                         })}
                                     </div>
 
-                                    {showFeedback && (
-                                        <div className="mt-8 flex justify-between items-center animate-fadeIn">
-                                            <div className={`text-xl font-bold ${selectedOption === activeQuestion.correctIndex ? 'text-green-400' : 'text-red-400'}`}>
-                                                {selectedOption === activeQuestion.correctIndex ? '✓ Correct!' : '✗ Incorrect.'}
-                                            </div>
-                                            <button 
-                                                onClick={handleContinueVideo}
-                                                className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-lg font-bold shadow-lg transition-colors text-lg"
-                                            >
-                                                Continue Video
-                                            </button>
-                                        </div>
-                                    )}
+                                    <div className="mt-8 flex justify-between items-center animate-fadeIn border-t border-slate-700 pt-6">
+                                        {!showFeedback ? (
+                                            <>
+                                                <div className="text-slate-400 font-medium">Press <kbd className="bg-slate-700 px-2 py-1 rounded border border-slate-600 text-white">Enter</kbd> to skip</div>
+                                                <button 
+                                                    onClick={handleSkip}
+                                                    className="text-slate-300 hover:text-white px-6 py-3 rounded-lg font-bold transition-colors border border-slate-600 hover:bg-slate-700"
+                                                >
+                                                    Skip Question
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className={`text-xl font-bold ${selectedOption === activeQuestion.correctIndex ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {selectedOption === activeQuestion.correctIndex ? '✓ Correct!' : '✗ Incorrect.'}
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-slate-400 font-medium">Press <kbd className="bg-slate-700 px-2 py-1 rounded border border-slate-600 text-white">Enter</kbd> to continue</span>
+                                                    <button 
+                                                        onClick={handleContinueVideo}
+                                                        className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-lg font-bold shadow-lg transition-colors text-lg"
+                                                    >
+                                                        Continue Video
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -760,10 +779,16 @@
                                 {/* Question Markers on Timeline */}
                                 {MAX_ALLOWED_TIME > 0 && QUIZ_QUESTIONS.map(q => {
                                     const markerStyle = { left: `calc(${(q.timestamp / MAX_ALLOWED_TIME) * 100}% - 2px)` };
+                                    
+                                    // Color logic based on answered state
+                                    let dotColor = 'bg-amber-400';
+                                    if (studentAnswers[q.id] === true) dotColor = 'bg-green-400 opacity-80';
+                                    if (studentAnswers[q.id] === false) dotColor = 'bg-red-500 opacity-80';
+
                                     return (
                                         <div 
                                             key={q.id}
-                                            className={`absolute top-1/2 -translate-y-1/2 w-1 h-2 rounded-full ${answeredQuestions.has(q.id) ? 'bg-green-400 opacity-60' : 'bg-amber-400'}`}
+                                            className={`absolute top-1/2 -translate-y-1/2 w-1.5 h-3 rounded-full ${dotColor}`}
                                             style={markerStyle}
                                             title={`Question ${q.id}`}
                                         ></div>
@@ -838,10 +863,10 @@
                                 </div>
 
                                 <div className="text-base font-medium text-slate-300 font-mono ml-auto flex items-center gap-4">
-                                    <div className="flex gap-3 text-xs">
-                                        <span className="flex items-center gap-1 text-amber-400"><span className="w-2 h-2 rounded-full bg-amber-400"></span>{100 - answeredQuestions.size}</span>
-                                        <span className="flex items-center gap-1 text-green-400"><span className="w-2 h-2 rounded-full bg-green-400"></span>{answeredQuestions.size}</span>
+                                    <div className="flex gap-3 text-sm">
+                                        <span className="text-white font-bold tracking-wide">Score: <span className="text-green-400">{calculateScore()}</span> / 20</span>
                                     </div>
+                                    <span className="opacity-50 mx-2">|</span>
                                     {formatTime(currentTime)} / {formatTime(MAX_ALLOWED_TIME)}
                                 </div>
                             </div>
