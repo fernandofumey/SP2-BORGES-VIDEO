@@ -52,7 +52,7 @@
         // Salt for Local Storage obfuscation
         const SALT = "borges_v2_";
 
-        // Safe Unicode-compatible Base64 encoding (prevents crashes if students type accented names like "José")
+        // Safe Unicode-compatible Base64 encoding
         const encodeBase64 = (str) => {
             try { return btoa(unescape(encodeURIComponent(str))); } catch(e) { return btoa(str); }
         };
@@ -110,7 +110,6 @@
             const studentPeriodRef = useRef(studentPeriod);
             const studentEmailRef = useRef(studentEmail);
 
-            // Tab violation tracking
             const [violations, setViolations] = useState(() => getSavedNum('borges_video_violations_hash'));
             const [showExitWarning, setShowExitWarning] = useState(false);
             const [dismissedFinalOverlay, setDismissedFinalOverlay] = useState(false);
@@ -121,16 +120,15 @@
             const [activeQuestion, setActiveQuestion] = useState(null);
             const activeQuestionRef = useRef(null);
             const lastTriggeredQuestionIdRef = useRef(null); 
-            const prevTimeRef = useRef(undefined); // Protects against browser lag missing the questions
+            const prevTimeRef = useRef(undefined); 
 
-            // Student Answers Object: { 1: true, 2: false }
+            // Student Answers Object
             const [studentAnswers, setStudentAnswers] = useState(getSavedAnswers());
             const studentAnswersRef = useRef(studentAnswers);
 
             // Modal Interactions
             const [selectedOption, setSelectedOption] = useState(null);
             const [showFeedback, setShowFeedback] = useState(false);
-            
             const selectedOptionRef = useRef(null);
             const showFeedbackRef = useRef(false);
 
@@ -188,7 +186,7 @@
                 return () => window.removeEventListener("beforeunload", handleBeforeUnload);
             }, [view]);
 
-            // Tab Visibility Detection (Pauses video but removes penalization)
+            // Tab Visibility Detection (Pauses video without penalizing)
             useEffect(() => {
                 const handleVisibilityChange = () => {
                     if (document.hidden && view === 'video' && !isTeacherModeRef.current) {
@@ -241,7 +239,6 @@
                         onReady: (event) => {
                             setPlayer(event.target);
                             event.target.setOption('captions', 'track', {}); 
-                            
                             if (startTime > 0) {
                                 event.target.seekTo(startTime, true);
                             }
@@ -265,28 +262,29 @@
                                 if (document.exitFullscreen) document.exitFullscreen();
                                 else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                             }
-                            downloadCSV(); // Force download if they hit the absolute end of the video
+                            downloadCSV(); 
                             setView('finished');
                             return;
                         }
 
-                        // Enforce playback speed continuously to block Chrome speed-controller extensions
+                        // Enforce playback speed continuously
                         if (!isTeacherModeRef.current && player.getPlaybackRate() !== playbackRateRef.current) {
                             player.setPlaybackRate(playbackRateRef.current);
                         }
                         
                         const prev = prevTimeRef.current !== undefined ? prevTimeRef.current : time;
 
-                        // Strict Anti-Fast-Forward (Only evaluate if we haven't recently manually scrubbed the timeline)
+                        // Ironclad Anti-Fast-Forward System
                         if (Date.now() - lastSeekTimeRef.current >= 1500) {
                             let currentMax = maxTimeWatchedRef.current;
-                            const JUMP_TOLERANCE = 8; // Tolerance so natural buffering/lag doesn't block progress
+                            // 2.5s tolerance catches 5s YouTube native keyboard skips AND high-speed extensions.
+                            const JUMP_TOLERANCE = 2.5; 
 
-                            // Strict Anti-Fast-Forward: Blocks jumping forward past their current exact position
                             if (!isTeacherModeRef.current && time > prev + JUMP_TOLERANCE) { 
+                                // They attempted an unnatural jump. Snap them back!
                                 player.seekTo(prev, true);
                                 lastSeekTimeRef.current = Date.now();
-                                return; // Exit tick to snap back
+                                return; 
                             } else {
                                 if (time > currentMax) {
                                     maxTimeWatchedRef.current = time;
@@ -304,10 +302,8 @@
 
                         // === Guaranteed Question Triggering ===
                         if (!activeQuestionRef.current) {
-                            // Find any question that belongs to the current time, even if skipped over slightly by computer lag
                             const upcoming = QUIZ_QUESTIONS.find(q => {
                                 const inWindow = time >= q.timestamp && time < q.timestamp + 2;
-                                // If computer lag caused the browser to jump past the timestamp without firing
                                 const passedByLag = prev <= q.timestamp && time > q.timestamp && (time - prev) < 5;
                                 return inWindow || passedByLag;
                             });
@@ -318,7 +314,6 @@
                                 activeQuestionRef.current = upcoming;
                                 lastTriggeredQuestionIdRef.current = upcoming.id;
                             } else if (!upcoming) {
-                                // Clear it so it can re-trigger if they rewind past it later
                                 lastTriggeredQuestionIdRef.current = null; 
                             }
                         }
@@ -365,11 +360,20 @@
             const handleRewind = () => {
                 if (!player) return;
                 const newTime = Math.max(0, player.getCurrentTime() - 10);
+                
+                // If they click rewind, forcibly overwrite and lower their Max Watched time. 
+                // They are now trapped and must re-earn that progress at normal speed.
+                if (!isTeacherModeRef.current) {
+                    maxTimeWatchedRef.current = newTime;
+                    setMaxTimeWatched(newTime);
+                    localStorage.setItem('borges_video_max_time_hash', encodeBase64(SALT + newTime.toString()));
+                }
+
                 lastSeekTimeRef.current = Date.now(); 
                 player.seekTo(newTime, true);
                 setCurrentTime(newTime);
                 prevTimeRef.current = newTime;
-                lastTriggeredQuestionIdRef.current = null; // Clear so if rewound over a question, it pops again
+                lastTriggeredQuestionIdRef.current = null; 
             };
 
             const toggleFullscreen = () => {
@@ -395,11 +399,15 @@
                 let targetTime = clickRatio * MAX_ALLOWED_TIME;
                 const currentVidTime = player.getCurrentTime();
 
-                // Strictly Only Rewind: Blocks clicking forward from current position
+                // Block forward clicks. If clicking backward, aggressively lock their progress.
                 if (!isTeacherModeRef.current) {
                     if (targetTime > currentVidTime) {
-                        targetTime = currentVidTime; 
+                        targetTime = currentVidTime; // Clamp to current time (Blocks fast forward)
                     }
+                    // Overwrite maximum watched time to lock them in
+                    maxTimeWatchedRef.current = targetTime;
+                    setMaxTimeWatched(targetTime);
+                    localStorage.setItem('borges_video_max_time_hash', encodeBase64(SALT + targetTime.toString()));
                 } else {
                     if (targetTime > maxTimeWatchedRef.current) {
                         maxTimeWatchedRef.current = targetTime;
@@ -408,13 +416,11 @@
                     }
                 }
                  
-                if (targetTime < currentVidTime || isTeacherModeRef.current) {
-                    lastSeekTimeRef.current = Date.now(); 
-                    player.seekTo(targetTime, true);
-                    setCurrentTime(targetTime);
-                    prevTimeRef.current = targetTime;
-                    lastTriggeredQuestionIdRef.current = null; // Reset question popups based on new timeline position
-                }
+                lastSeekTimeRef.current = Date.now(); 
+                player.seekTo(targetTime, true);
+                setCurrentTime(targetTime);
+                prevTimeRef.current = targetTime;
+                lastTriggeredQuestionIdRef.current = null;
             };
 
             const handleTimelineSlider = (e) => {
@@ -422,11 +428,13 @@
                 let targetTime = parseFloat(e.target.value);
                 const currentVidTime = player.getCurrentTime();
 
-                // Strictly Only Rewind: Blocks dragging forward from current position
                 if (!isTeacherModeRef.current) {
                     if (targetTime > currentVidTime) {
                         targetTime = currentVidTime; 
                     }
+                    maxTimeWatchedRef.current = targetTime;
+                    setMaxTimeWatched(targetTime);
+                    localStorage.setItem('borges_video_max_time_hash', encodeBase64(SALT + targetTime.toString()));
                 } else {
                     if (targetTime > maxTimeWatchedRef.current) {
                         maxTimeWatchedRef.current = targetTime;
@@ -435,13 +443,11 @@
                     }
                 }
                  
-                if (targetTime < currentVidTime || isTeacherModeRef.current) {
-                    lastSeekTimeRef.current = Date.now(); 
-                    player.seekTo(targetTime, true);
-                    setCurrentTime(targetTime);
-                    prevTimeRef.current = targetTime;
-                    lastTriggeredQuestionIdRef.current = null;
-                }
+                lastSeekTimeRef.current = Date.now(); 
+                player.seekTo(targetTime, true);
+                setCurrentTime(targetTime);
+                prevTimeRef.current = targetTime;
+                lastTriggeredQuestionIdRef.current = null;
             };
 
             const handleOptionClick = (index) => {
@@ -791,6 +797,8 @@
                     >
                         <div className={`relative w-full bg-black ${isFullscreen ? 'flex-grow' : 'aspect-video'}`}>
                             <div ref={playerContainerRef} className="absolute inset-0 w-full h-full"></div>
+                            
+                            {/* Physical Shield: Completely blocks mouse clicks/taps directly on the YouTube iframe */}
                             <div className="absolute inset-0 z-10 bg-transparent"></div>
 
                             {/* Giant Final Submit Overlay (Appears after Q20 is answered) */}
@@ -934,6 +942,18 @@
                                         ></div>
                                     );
                                 })}
+
+                                {/* Invisible Native Range Slider for Flawless Scrubbing */}
+                                <input 
+                                    type="range" 
+                                    min="0" 
+                                    max={MAX_ALLOWED_TIME} 
+                                    value={currentTime}
+                                    step="0.1"
+                                    onChange={handleTimelineSlider}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30"
+                                    title="Seek"
+                                />
                             </div>
 
                             {/* Controls row */}
