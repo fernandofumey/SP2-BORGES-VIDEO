@@ -15,7 +15,7 @@
     <!-- Babel for JSX compilation in the browser -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4 py-10 selection:bg-blue-500/30">
+<body class="bg-slate-900 text-white min-h-screen flex items-start sm:items-center justify-center p-4 py-10 selection:bg-blue-500/30">
     <div id="root" class="w-full max-w-5xl"></div>
 
     <script type="text/babel">
@@ -99,7 +99,7 @@
             const [maxTimeWatched, setMaxTimeWatched] = useState(() => getSavedNum('borges_video_max_time_hash'));
             const maxTimeWatchedRef = useRef(getSavedNum('borges_video_max_time_hash'));
             
-            // Student Information States (Renamed to prevent ReferenceError conflicts with global browser objects)
+            // Student Information States
             const [firstName, setFirstName] = useState(() => getSavedStr('borges_video_first_name'));
             const [lastName, setLastName] = useState(() => getSavedStr('borges_video_last_name'));
             const [studentPeriod, setStudentPeriod] = useState(() => getSavedStr('borges_video_period'));
@@ -115,6 +115,7 @@
             const [showExitWarning, setShowExitWarning] = useState(false);
             const [dismissedFinalOverlay, setDismissedFinalOverlay] = useState(false);
             const playbackRateRef = useRef(1);
+            const lastSeekTimeRef = useRef(0);
 
             // Question Tracking Logic
             const [activeQuestion, setActiveQuestion] = useState(null);
@@ -264,7 +265,7 @@
                                 if (document.exitFullscreen) document.exitFullscreen();
                                 else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                             }
-                            downloadCSV(); // Force download if they hit the absolute end of the video
+                            downloadCSV(); 
                             setView('finished');
                             return;
                         }
@@ -274,40 +275,38 @@
                             player.setPlaybackRate(playbackRateRef.current);
                         }
                         
-                        if (Date.now() - lastSeekTimeRef.current < 1500) {
-                            setCurrentTime(time);
-                            prevTimeRef.current = time;
-                            return;
-                        }
-                        
-                        let currentMax = maxTimeWatchedRef.current;
-                        const JUMP_TOLERANCE = 8; // Increased tolerance so natural buffering/lag doesn't block progress
+                        const prev = prevTimeRef.current !== undefined ? prevTimeRef.current : time;
 
-                        // Strict Anti-Fast-Forward
-                        if (!isTeacherModeRef.current && time > currentMax + JUMP_TOLERANCE) { 
-                            player.seekTo(currentMax, true);
-                            lastSeekTimeRef.current = Date.now();
-                            return;
-                        } else {
-                            if (time > currentMax) {
-                                maxTimeWatchedRef.current = time;
-                                setMaxTimeWatched(time);
-                                localStorage.setItem('borges_video_max_time_hash', encodeBase64(SALT + time.toString())); 
+                        // Strict Anti-Fast-Forward (Only evaluate if we haven't recently manually scrubbed the timeline)
+                        if (Date.now() - lastSeekTimeRef.current >= 1500) {
+                            let currentMax = maxTimeWatchedRef.current;
+                            const JUMP_TOLERANCE = 8; // Tolerance so natural buffering/lag doesn't block progress
+
+                            if (!isTeacherModeRef.current && time > currentMax + JUMP_TOLERANCE) { 
+                                player.seekTo(currentMax, true);
+                                lastSeekTimeRef.current = Date.now();
+                                return; // Exit tick to snap back
+                            } else {
+                                if (time > currentMax) {
+                                    maxTimeWatchedRef.current = time;
+                                    setMaxTimeWatched(time);
+                                    localStorage.setItem('borges_video_max_time_hash', encodeBase64(SALT + time.toString())); 
+                                }
                             }
                         }
 
-                        if (time > 0 || currentMax === 0) {
+                        // Always update visual time
+                        if (time > 0 || maxTimeWatchedRef.current === 0) {
                             setCurrentTime(time);
                             localStorage.setItem('borges_video_curr_time_hash', encodeBase64(SALT + time.toString())); 
                         }
 
-                        // === Dynamic Rewind & Guaranteed Question Triggering ===
+                        // === Guaranteed Question Triggering ===
                         if (!activeQuestionRef.current) {
-                            const prev = prevTimeRef.current !== undefined ? prevTimeRef.current : time;
-                            
                             // Find any question that belongs to the current time, even if skipped over slightly by computer lag
                             const upcoming = QUIZ_QUESTIONS.find(q => {
                                 const inWindow = time >= q.timestamp && time < q.timestamp + 2;
+                                // If computer lag caused the browser to jump past the timestamp without firing
                                 const passedByLag = prev <= q.timestamp && time > q.timestamp && (time - prev) < 5;
                                 return inWindow || passedByLag;
                             });
@@ -369,6 +368,7 @@
                 player.seekTo(newTime, true);
                 setCurrentTime(newTime);
                 prevTimeRef.current = newTime;
+                lastTriggeredQuestionIdRef.current = null; // Clear so if rewound over a question, it pops again
             };
 
             const toggleFullscreen = () => {
@@ -387,11 +387,13 @@
                 }
             };
 
-            const handleTimelineSlider = (e) => {
+            const handleTimelineClick = (e) => {
                 if (!player) return;
-                let targetTime = parseFloat(e.target.value);
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickRatio = (e.clientX - rect.left) / rect.width;
+                let targetTime = clickRatio * MAX_ALLOWED_TIME;
 
-                // Blocks fast forwarding but cleanly glides when rewinding natively
+                // Blocks fast forwarding but cleanly glides when rewinding via click
                 if (!isTeacherModeRef.current) {
                     if (targetTime > maxTimeWatchedRef.current) {
                         targetTime = maxTimeWatchedRef.current; 
@@ -408,6 +410,7 @@
                 player.seekTo(targetTime, true);
                 setCurrentTime(targetTime);
                 prevTimeRef.current = targetTime;
+                lastTriggeredQuestionIdRef.current = null; // Reset question popups based on new timeline position
             };
 
             const handleOptionClick = (index) => {
@@ -570,7 +573,7 @@
 
             if (view === 'instructions') {
                 return (
-                    <div className="max-w-2xl w-full bg-slate-800 p-5 sm:p-8 rounded-2xl shadow-2xl border border-slate-700 relative max-h-[90vh] overflow-y-auto">
+                    <div className="max-w-2xl w-full bg-slate-800 p-5 sm:p-8 rounded-2xl shadow-2xl border border-slate-700 relative my-auto">
                         {!isTeacherMode ? (
                             <button 
                                 onClick={() => setShowPinModal(true)}
@@ -867,7 +870,10 @@
                         {/* Custom Control Bar */}
                         <div className={`w-full bg-slate-800 p-4 sm:p-5 flex flex-col gap-3 z-40 ${isFullscreen ? 'pb-8' : ''}`}>
                             {/* Timeline strictly mapped to the assigned duration */}
-                            <div className="relative w-full h-4 bg-slate-700 rounded-full group flex items-center">
+                            <div 
+                                className="relative w-full h-4 bg-slate-700 rounded-full group flex items-center cursor-pointer"
+                                onClick={handleTimelineClick}
+                            >
                                 {/* Max Watched Buffer */}
                                 <div 
                                     className="absolute top-0 left-0 h-full bg-slate-500 rounded-full opacity-50 transition-all duration-200 pointer-events-none"
@@ -897,18 +903,6 @@
                                         ></div>
                                     );
                                 })}
-
-                                {/* Invisible Native Range Slider for Flawless Scrubbing */}
-                                <input 
-                                    type="range" 
-                                    min="0" 
-                                    max={MAX_ALLOWED_TIME} 
-                                    value={currentTime}
-                                    step="0.1"
-                                    onChange={handleTimelineSlider}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30"
-                                    title="Seek"
-                                />
                             </div>
 
                             {/* Controls row */}
