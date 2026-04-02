@@ -259,15 +259,35 @@
                             setView('finished');
                             return;
                         }
+
+                        // Enforce playback speed continuously to block Chrome speed-controller extensions
+                        if (!isTeacherModeRef.current && player.getPlaybackRate() !== playbackRateRef.current) {
+                            player.setPlaybackRate(playbackRateRef.current);
+                        }
                         
-                        // Fast Forward Allowed - Track max time without restrictions
-                        if (time > maxTimeWatchedRef.current) {
-                            maxTimeWatchedRef.current = time;
-                            setMaxTimeWatched(time);
-                            localStorage.setItem('borges_video_max_time_hash', btoa(SALT + time.toString())); 
+                        if (Date.now() - lastSeekTimeRef.current < 1500) {
+                            setCurrentTime(time);
+                            return;
+                        }
+                        
+                        let currentMax = maxTimeWatchedRef.current;
+                        const JUMP_TOLERANCE = 3;
+
+                        // Strict Anti-Fast-Forward
+                        if (!isTeacherModeRef.current && time > currentMax + JUMP_TOLERANCE) { 
+                            player.seekTo(currentMax, true);
+                            lastSeekTimeRef.current = Date.now();
+                            return;
+                        } else {
+                            if (time > currentMax && (time - currentMax) <= JUMP_TOLERANCE) {
+                                const newMax = time;
+                                maxTimeWatchedRef.current = newMax;
+                                setMaxTimeWatched(newMax);
+                                localStorage.setItem('borges_video_max_time_hash', btoa(SALT + newMax.toString())); 
+                            }
                         }
 
-                        if (time > 0 || maxTimeWatchedRef.current === 0) {
+                        if (time > 0 || currentMax === 0) {
                             setCurrentTime(time);
                             localStorage.setItem('borges_video_curr_time_hash', btoa(SALT + time.toString())); 
                         }
@@ -330,6 +350,7 @@
             const handleRewind = () => {
                 if (!player) return;
                 const newTime = Math.max(0, player.getCurrentTime() - 10);
+                lastSeekTimeRef.current = Date.now(); 
                 player.seekTo(newTime, true);
                 setCurrentTime(newTime);
             };
@@ -356,13 +377,21 @@
                 const clickRatio = (e.clientX - rect.left) / rect.width;
                 let targetTime = clickRatio * MAX_ALLOWED_TIME;
 
-                // Completely open timeline clicking (Fast Forward Allowed)
-                if (targetTime > maxTimeWatchedRef.current) {
-                    maxTimeWatchedRef.current = targetTime;
-                    setMaxTimeWatched(targetTime);
-                    localStorage.setItem('borges_video_max_time_hash', btoa(SALT + targetTime.toString()));
+                if (!isTeacherModeRef.current) {
+                    // Strict Timeline Block: Clamp click attempts exactly to max watched time
+                    if (targetTime > maxTimeWatchedRef.current) {
+                        targetTime = maxTimeWatchedRef.current; 
+                    }
+                } else {
+                    // Teacher Mode: Update the official max watched time allowing questions to trigger correctly
+                    if (targetTime > maxTimeWatchedRef.current) {
+                        maxTimeWatchedRef.current = targetTime;
+                        setMaxTimeWatched(targetTime);
+                        localStorage.setItem('borges_video_max_time_hash', btoa(SALT + targetTime.toString()));
+                    }
                 }
                  
+                lastSeekTimeRef.current = Date.now(); 
                 player.seekTo(targetTime, true);
                 setCurrentTime(targetTime);
             };
