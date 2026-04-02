@@ -102,6 +102,10 @@
             const periodRef = useRef(period);
             const emailRef = useRef(email);
 
+            // Tab violation tracking
+            const [violations, setViolations] = useState(() => getSavedNum('borges_video_violations_hash'));
+            const [showExitWarning, setShowExitWarning] = useState(false);
+            const [dismissedFinalOverlay, setDismissedFinalOverlay] = useState(false);
             const playbackRateRef = useRef(1);
 
             // Question Tracking Logic
@@ -111,7 +115,7 @@
 
             // Student Answers Object: { 1: true, 2: false }
             const [studentAnswers, setStudentAnswers] = useState(getSavedAnswers());
-            const studentAnswersRef = useRef(studentAnswers); // Added ref for accurate background score calculations
+            const studentAnswersRef = useRef(studentAnswers);
 
             // Modal Interactions
             const [selectedOption, setSelectedOption] = useState(null);
@@ -490,8 +494,17 @@
                 document.body.removeChild(link);
             };
 
-            // Removed the useEffect that was causing browser pop-up blockers to trigger
-            // The download is now tied directly to the onClick event of the final button.
+            const handleFinalSubmit = () => {
+                downloadCSV();
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                }
+                setView('finished');
+            };
 
             const handlePinSubmit = (e) => {
                 e.preventDefault();
@@ -704,24 +717,28 @@
                             <div className="absolute inset-0 z-10 bg-transparent"></div>
 
                             {/* Giant Final Submit Overlay (Appears after Q20 is answered) */}
-                            {studentAnswers[20] !== undefined && !activeQuestion && view === 'video' && (
-                                <div 
-                                    className="absolute inset-0 flex flex-col items-center justify-center z-[60] bg-slate-900/90 backdrop-blur-sm cursor-pointer group"
-                                    onClick={() => {
-                                        downloadCSV(); // Forces direct, immediate download recognized by the browser
-                                        if (document.fullscreenElement || document.webkitFullscreenElement) {
-                                            if (document.exitFullscreen) {
-                                                document.exitFullscreen();
-                                            } else if (document.webkitExitFullscreen) {
-                                                document.webkitExitFullscreen();
-                                            }
-                                        }
-                                        setView('finished');
-                                    }}
-                                >
-                                    <div className="bg-green-600 group-hover:bg-green-500 text-white font-black py-12 px-8 sm:px-16 rounded-3xl shadow-[0_0_60px_rgba(22,163,74,0.6)] animate-pulse border-4 border-white transition-transform group-hover:scale-105 text-center max-w-4xl mx-4">
-                                        <span className="text-3xl sm:text-5xl uppercase tracking-wider mb-4 block">Last question answered!</span>
-                                        <span className="text-xl sm:text-3xl font-bold mt-4 block text-green-100">Click anywhere here to save your score and submit.</span>
+                            {studentAnswers[20] !== undefined && !activeQuestion && view === 'video' && !dismissedFinalOverlay && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center z-[60] bg-slate-900/90 backdrop-blur-sm pointer-events-auto">
+                                    <div className="bg-slate-800 p-8 sm:p-12 rounded-3xl shadow-[0_0_60px_rgba(22,163,74,0.3)] border-2 border-slate-600 text-center max-w-2xl mx-4 flex flex-col gap-6 w-full">
+                                        <span className="text-3xl sm:text-4xl font-black text-white uppercase tracking-wider block">Last question answered!</span>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleFinalSubmit();
+                                            }}
+                                            className="bg-green-600 text-white hover:bg-green-500 transition-transform hover:scale-105 shadow-[0_0_20px_rgba(22,163,74,0.6)] text-2xl sm:text-3xl font-bold py-4 px-8 rounded-xl w-full border border-green-400"
+                                        >
+                                            Save Score & Submit
+                                        </button>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setDismissedFinalOverlay(true);
+                                            }}
+                                            className="text-slate-400 hover:text-white underline font-medium text-lg mt-2 transition-colors"
+                                        >
+                                            Disregard and continue watching
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -909,10 +926,20 @@
                                     </button>
                                 </div>
 
+                                {/* Final Submit Button (If disregarded) */}
+                                {studentAnswers[20] !== undefined && dismissedFinalOverlay && (
+                                    <button 
+                                        onClick={handleFinalSubmit}
+                                        className="z-20 bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-bold shadow-[0_0_15px_rgba(22,163,74,0.6)] animate-pulse whitespace-nowrap text-xs sm:text-sm border border-green-400 sm:ml-auto ml-auto"
+                                    >
+                                        Save the score to submit
+                                    </button>
+                                )}
+
                                 {/* Fullscreen Button */}
                                 <button 
                                     onClick={toggleFullscreen}
-                                    className="text-slate-400 hover:text-white transition-colors focus:outline-none z-20 sm:ml-4 ml-auto"
+                                    className={`text-slate-400 hover:text-white transition-colors focus:outline-none z-20 sm:ml-4 ${studentAnswers[20] !== undefined && dismissedFinalOverlay ? 'ml-2' : 'ml-auto'}`}
                                     title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                                 >
                                     {isFullscreen ? (
